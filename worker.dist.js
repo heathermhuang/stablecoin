@@ -68,6 +68,14 @@ async function cachedProxy(request, upstream, ttl) {
   }
 }
 
+const SC_FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#0d0f14"/><circle cx="16" cy="16" r="11" fill="none" stroke="#22c55e" stroke-width="2"/><text x="16" y="21.5" text-anchor="middle" font-size="14" font-weight="900" fill="#22c55e" font-family="Arial,Helvetica,sans-serif">$</text></svg>`;
+
+const SC_SHARED_CSS = `<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#07080c;color:#e4e6ef;font-family:'DM Sans',sans-serif;min-height:100vh;line-height:1.7}.topnav{position:sticky;top:0;z-index:200;background:rgba(7,8,12,0.92);backdrop-filter:blur(16px);border-bottom:1px solid #1c1f2b}.topnav-inner{max-width:900px;margin:0 auto;padding:0 24px;height:54px;display:flex;align-items:center;gap:0}.tnav-brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:#e4e6ef}.tnav-logo{width:30px;height:30px;background:#191c25;border:1px solid #252938;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#22c55e;font-family:'IBM Plex Mono',monospace;font-weight:800}.tnav-name{font-size:13px;font-weight:700;color:#9498ad}.tnav-back{margin-left:auto;font-size:12px;font-family:'IBM Plex Mono',monospace;color:#3b82f6;text-decoration:none;padding:6px 14px;border:1px solid rgba(59,130,246,0.2);border-radius:6px;background:rgba(59,130,246,0.05)}.tnav-back:hover{background:rgba(59,130,246,0.1)}.legal-wrap{max-width:760px;margin:0 auto;padding:48px 24px 80px}.legal-wrap h1{font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:6px}.legal-wrap .updated{font-size:12px;color:#5d6178;font-family:'IBM Plex Mono',monospace;margin-bottom:40px}.legal-wrap h2{font-size:16px;font-weight:700;color:#e4e6ef;margin:32px 0 10px;padding-bottom:8px;border-bottom:1px solid #1c1f2b}.legal-wrap p{font-size:14px;color:#9498ad;margin-bottom:12px}.legal-wrap ul{margin:8px 0 14px 20px}.legal-wrap li{font-size:14px;color:#9498ad;margin-bottom:6px}.legal-wrap a{color:#3b82f6}.disclaimer-box{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:16px 20px;margin:24px 0}.disclaimer-box p{color:#fca5a5;margin:0;font-size:13px;font-weight:500}.footer{text-align:center;padding:32px 0;border-top:1px solid #1c1f2b;font-size:12px;color:#5d6178;font-family:'IBM Plex Mono',monospace}.footer a{color:#3b82f6;text-decoration:none}</style>`;
+
+const SC_TERMS_HTML = `<!DOCTYPE html><html lang="en"><head><title>Terms of Use · stablecoin.io</title>${SC_SHARED_CSS}</head><body><nav class="topnav"><div class="topnav-inner"><a class="tnav-brand" href="/"><div class="tnav-logo">$</div><span class="tnav-name">stablecoin.io</span></a><a class="tnav-back" href="/">&#8592; Back to Monitor</a></div></nav><div class="legal-wrap"><h1>Terms of Use</h1><div class="updated">Last updated: March 2026</div><div class="disclaimer-box"><p>&#9888;&#65039; IMPORTANT: This site does not provide financial advice. Stablecoin peg data is for informational purposes only. Stablecoins can and do lose their peg.</p></div><h2>1. Acceptance</h2><p>By accessing stablecoin.io you agree to these Terms. If you disagree, please do not use the service.</p><h2>2. What We Do</h2><p>stablecoin.io displays publicly available stablecoin market data from DeFi Llama, CoinGecko, and other sources. We show peg deviations, risk scores, market caps, and mechanism analysis. This is a data aggregation and display service only.</p><h2>3. No Financial Advice</h2><p>Nothing on this site constitutes financial advice, investment advice, or any other form of professional advice. Risk scores and peg health indicators are algorithmic calculations &mdash; they are not guarantees or recommendations.</p><p>Stablecoins are not risk-free. Historical peg stability does not guarantee future stability. You could lose money in stablecoin positions.</p><h2>4. Data Accuracy</h2><p>Data is sourced from third-party APIs (DeFi Llama, CoinGecko). We make no representations about the accuracy, completeness, or timeliness of any data. Peg deviation data may be delayed or incorrect.</p><h2>5. Eligibility</h2><p>You must be at least 18 years old to use this service.</p><h2>6. Prohibited Uses</h2><p>You may not: scrape data for commercial resale, interfere with the service, violate applicable law, or misrepresent data from this site as original research.</p><h2>7. Disclaimer of Warranties</h2><p>THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. WE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED.</p><h2>8. Limitation of Liability</h2><p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM YOUR USE OF THE SERVICE.</p><h2>9. Changes</h2><p>We may modify these Terms at any time. Continued use constitutes acceptance.</p><h2>10. Contact</h2><p>Questions? See our <a href="/privacy">Privacy Policy</a>. stablecoin.io is part of the <a href="https://shitcoin.io">Crypto Monitor</a> network.</p></div><div class="footer"><a href="/">stablecoin.io</a> &nbsp;&middot;&nbsp; <a href="/terms">Terms</a> &nbsp;&middot;&nbsp; <a href="/privacy">Privacy</a> &nbsp;&middot;&nbsp; <a href="https://shitcoin.io">shitcoin.io</a></div></body></html>`;
+
+const SC_PRIVACY_HTML = `<!DOCTYPE html><html lang="en"><head><title>Privacy Policy · stablecoin.io</title>${SC_SHARED_CSS}</head><body><nav class="topnav"><div class="topnav-inner"><a class="tnav-brand" href="/"><div class="tnav-logo">$</div><span class="tnav-name">stablecoin.io</span></a><a class="tnav-back" href="/">&#8592; Back to Monitor</a></div></nav><div class="legal-wrap"><h1>Privacy Policy</h1><div class="updated">Last updated: March 2026</div><p>stablecoin.io is committed to your privacy. This policy explains what data we collect, how we use it, and your rights.</p><h2>1. Data We Collect</h2><p><strong>Analytics (with consent only):</strong> If you accept cookies, Google Analytics collects anonymized data including pages visited, session duration, general geographic region, browser type, and device type. No personally identifiable information is collected.</p><p><strong>Local storage:</strong> We store your cookie consent preference and UI state (sort order, active filter) in your browser's localStorage. This data never leaves your device.</p><p><strong>No accounts:</strong> We do not require registration. We do not collect names, emails, or payment information.</p><h2>2. Cookies</h2><p>Cookies are only used with your consent. If accepted, Google Analytics sets:</p><ul><li><strong>_ga</strong> &mdash; Distinguishes users (2 year expiry)</li><li><strong>_ga_*</strong> &mdash; Session state (2 year expiry)</li></ul><p>Withdraw consent anytime by clearing browser cookies and localStorage.</p><h2>3. How We Use Data</h2><p>Analytics data is used solely to understand aggregate traffic patterns. We do not sell, share, or use data for advertising.</p><h2>4. Third-Party Services</h2><ul><li><strong>DeFi Llama</strong> (stablecoins.llama.fi) &mdash; Stablecoin data</li><li><strong>CoinGecko</strong> (api.coingecko.com) &mdash; Price and market cap data</li><li><strong>Google Analytics</strong> (googletagmanager.com) &mdash; Analytics, consent-gated</li><li><strong>Google Fonts</strong> (fonts.googleapis.com) &mdash; Typography</li><li><strong>DeFi Llama Icons</strong> (icons.llamao.fi) &mdash; Chain logos</li><li><strong>CoinGecko Images</strong> (coin-images.coingecko.com) &mdash; Coin icons</li></ul><p>API calls to DeFi Llama and CoinGecko are proxied through our Cloudflare Worker.</p><h2>5. Data Retention</h2><p>Google Analytics data is retained for 14 months. Local storage data remains until cleared. We have no server-side database.</p><h2>6. Your Rights (GDPR)</h2><p>EEA residents have the right to: access data we hold, request deletion, withdraw consent, and lodge a complaint with their local DPA.</p><h2>7. Children</h2><p>This service is not intended for users under 18.</p><h2>8. Changes</h2><p>We may update this policy. Continued use after changes constitutes acceptance.</p><h2>9. Contact</h2><p>For privacy questions, use the site footer links. We aim to respond within 30 days. stablecoin.io is part of the <a href="https://shitcoin.io">Crypto Monitor</a> network.</p></div><div class="footer"><a href="/">stablecoin.io</a> &nbsp;&middot;&nbsp; <a href="/terms">Terms</a> &nbsp;&middot;&nbsp; <a href="/privacy">Privacy</a> &nbsp;&middot;&nbsp; <a href="https://shitcoin.io">shitcoin.io</a></div></body></html>`;
+
 const HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -75,14 +83,15 @@ const HTML = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stablecoin Monitor · Peg Health &amp; Risk Scores</title>
 <meta name="description" content="Real-time stablecoin health monitoring — peg deviation, risk scores, market caps, and mechanism analysis for USDT, USDC, DAI, and 50+ stablecoins.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💲</text></svg>">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-LXE5V2MCW2"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-LXE5V2MCW2');
-</script>
+<meta property="og:title" content="Stablecoin Monitor · stablecoin.io">
+<meta property="og:description" content="Real-time peg health, risk scores, and market data for USDT, USDC, DAI, and 50+ stablecoins.">
+<meta property="og:url" content="https://stablecoin.io">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Stablecoin Monitor · stablecoin.io">
+<meta name="twitter:description" content="Real-time peg health and risk scores for 50+ stablecoins.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="alternate icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -256,6 +265,17 @@ tbody tr:last-child td{border-bottom:none}
 /* FOOTER */
 .footer{margin-top:36px;text-align:center;font-size:11px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;padding:20px 0;border-top:1px solid var(--border-1)}
 .footer a{color:var(--blue);text-decoration:none}
+.cookie-bar{position:fixed;bottom:0;left:0;right:0;z-index:1000;background:var(--bg-2);border-top:1px solid var(--border-2);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;backdrop-filter:blur(12px);transition:transform 0.3s}
+.cookie-bar.hidden{transform:translateY(100%);pointer-events:none}
+.cookie-bar-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.cookie-bar-text{font-size:11px;color:var(--text-2);font-family:'IBM Plex Mono',monospace;line-height:1.5}
+.cookie-bar-text a{color:var(--blue);text-decoration:none}
+.cookie-bar-actions{display:flex;gap:8px;flex-shrink:0}
+.cookie-btn{padding:7px 16px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:'IBM Plex Mono',monospace;transition:all 0.15s;border:1px solid transparent}
+.cookie-btn.accept{background:var(--green);color:#000;border-color:var(--green)}
+.cookie-btn.accept:hover{opacity:0.88}
+.cookie-btn.decline{background:transparent;color:var(--text-3);border-color:var(--border-2)}
+.cookie-btn.decline:hover{color:var(--text-2)}
 
 /* EMPTY */
 .empty-state{padding:48px;text-align:center;color:var(--text-3);font-family:'IBM Plex Mono',monospace;font-size:13px}
@@ -374,7 +394,9 @@ tbody tr:last-child td{border-bottom:none}
   <!-- FOOTER -->
   <div class="footer">
     Data from <a href="https://defillama.com" target="_blank">DeFi Llama</a> + <a href="https://coingecko.com" target="_blank">CoinGecko</a> · Risk scores based on peg deviation, mechanism, and market cap · Auto-refresh every 3 min<br>
-    Part of <a href="https://shitcoin.io">Crypto Monitor</a> · Stablecoin peg health monitoring
+    Part of <a href="https://shitcoin.io">Crypto Monitor</a> · Stablecoin peg health monitoring<br><br>
+    <strong style="color:var(--amber)">⚠ Not financial advice.</strong> Stablecoin data is for informational purposes only. Stablecoins carry real risk of depegging.<br><br>
+    <a href="/terms">Terms of Use</a> &nbsp;·&nbsp; <a href="/privacy">Privacy Policy</a> &nbsp;·&nbsp; <a href="https://shitcoin.io">shitcoin.io</a>
   </div>
 </div>
 
@@ -891,6 +913,57 @@ function doRefresh() {
 // ---- Init ----
 fetchData();
 </script>
+
+<!-- COOKIE CONSENT BAR -->
+<div class="cookie-bar hidden" id="cookie-bar">
+  <div class="cookie-bar-left">
+    <div class="cookie-bar-text">🍪 We use Google Analytics (only with consent) to understand traffic. No personal data collected. <a href="/privacy">Privacy Policy</a></div>
+  </div>
+  <div class="cookie-bar-actions">
+    <button class="cookie-btn accept" onclick="acceptCookies()">Accept Analytics</button>
+    <button class="cookie-btn decline" onclick="declineCookies()">Reject</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  const KEY = 'cm_consent_v1';
+  const GA_ID = 'G-LXE5V2MCW2';
+
+  function loadGA() {
+    if (window._gaLoaded) return;
+    window._gaLoaded = true;
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){dataLayer.push(arguments);};
+    window.gtag('js', new Date());
+    window.gtag('config', GA_ID);
+  }
+
+  window.acceptCookies = function() {
+    localStorage.setItem(KEY, 'granted');
+    document.getElementById('cookie-bar').classList.add('hidden');
+    loadGA();
+  };
+
+  window.declineCookies = function() {
+    localStorage.setItem(KEY, 'denied');
+    document.getElementById('cookie-bar').classList.add('hidden');
+  };
+
+  const stored = localStorage.getItem(KEY);
+  if (stored === 'granted') {
+    loadGA();
+  } else if (!stored) {
+    setTimeout(function() {
+      document.getElementById('cookie-bar').classList.remove('hidden');
+    }, 2000);
+  }
+})();
+</script>
 </body>
 </html>
 `;
@@ -902,6 +975,19 @@ export default {
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET' } });
+    }
+
+    // Favicon
+    if (path === '/favicon.svg' || path === '/favicon.ico') {
+      return new Response(SC_FAVICON_SVG, { headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400' } });
+    }
+
+    // Legal pages
+    if (path === '/terms') {
+      return new Response(SC_TERMS_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
+    }
+    if (path === '/privacy') {
+      return new Response(SC_PRIVACY_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
     }
 
     if (path === '/' || path === '/index.html') {
