@@ -1,0 +1,827 @@
+/**
+ * Cloudflare Worker for stablecoin.io
+ * Serves index.html and proxies DeFi Llama + CoinGecko APIs.
+ * Uses Cloudflare Cache API for stale-while-revalidate.
+ */
+
+const LLAMA_BASE = 'https://stablecoins.llama.fi';
+const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
+
+const TTL_MAP = [
+  ['/stablecoins', 180],
+  ['/cg/', 300],
+];
+
+function getTTL(path) {
+  for (const [k, v] of TTL_MAP) if (path.includes(k)) return v;
+  return 180;
+}
+
+async function cachedProxy(request, upstream, ttl) {
+  const cache = caches.default;
+  const isCG = upstream.includes('coingecko.com');
+  const storageTtl = isCG ? 86400 : ttl * 10;
+  const cacheKey = new Request(upstream, { headers: { 'Cache-Control': 'no-transform' } });
+
+  const cached = await cache.match(cacheKey);
+  if (cached) {
+    const age = Date.now()/1000 - new Date(cached.headers.get('X-Cached-At') || 0).getTime()/1000;
+    if (age > ttl) {
+      fetch(upstream, { headers: { 'User-Agent': 'StablecoinMonitor/1.0' } })
+        .then(r => r.ok ? r.blob().then(b => {
+          const fresh = new Response(b, { headers: {
+            'Content-Type': r.headers.get('Content-Type') || 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'X-Cached-At': new Date().toUTCString(),
+            'Cache-Control': `public, max-age=${storageTtl}`,
+          }});
+          cache.put(cacheKey, fresh.clone());
+        }) : null)
+        .catch(() => null);
+    }
+    const headers = new Headers(cached.headers);
+    headers.set('Access-Control-Allow-Origin', '*');
+    return new Response(cached.body, { status: 200, headers });
+  }
+
+  try {
+    const resp = await fetch(upstream, {
+      headers: { 'User-Agent': 'StablecoinMonitor/1.0' },
+      cf: { cacheTtl: ttl, cacheEverything: true },
+    });
+    if (!resp.ok) {
+      if (isCG) return new Response('[]', { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+      return new Response('{"error":"upstream"}', { status: 502, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+    }
+    const body = await resp.blob();
+    const response = new Response(body, { headers: {
+      'Content-Type': resp.headers.get('Content-Type') || 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'X-Cached-At': new Date().toUTCString(),
+      'Cache-Control': `public, max-age=${storageTtl}`,
+    }});
+    cache.put(cacheKey, response.clone());
+    return response;
+  } catch(e) {
+    if (isCG) return new Response('[]', { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+    return new Response('{"error":"fetch failed"}', { status: 503, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+  }
+}
+
+const HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stablecoin Monitor · Peg Health &amp; Risk Scores</title>
+<meta name="description" content="Real-time stablecoin health monitoring — peg deviation, risk scores, market caps, and mechanism analysis for USDT, USDC, DAI, and 50+ stablecoins.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💲</text></svg>">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LXE5V2MCW2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-LXE5V2MCW2');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-0: #07080c;
+    --bg-1: #0d0f14;
+    --bg-2: #13151c;
+    --bg-3: #191c25;
+    --bg-4: #1f222e;
+    --border-1: #1c1f2b;
+    --border-2: #252938;
+    --text-1: #e4e6ef;
+    --text-2: #9498ad;
+    --text-3: #5d6178;
+    --red: #ef4444;
+    --red-soft: rgba(239,68,68,0.12);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245,158,11,0.12);
+    --green: #22c55e;
+    --green-soft: rgba(34,197,94,0.12);
+    --blue: #3b82f6;
+    --blue-soft: rgba(59,130,246,0.12);
+    --purple: #a78bfa;
+    --purple-soft: rgba(167,139,250,0.12);
+    --cyan: #06b6d4;
+    --cyan-soft: rgba(6,182,212,0.12);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg-0);color:var(--text-1);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::after{content:'';position:fixed;top:0;left:0;width:100%;height:100%;opacity:0.025;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1700px;margin:0 auto;padding:28px 24px}
+.mono{font-family:'IBM Plex Mono',monospace}
+
+/* TOP NAV */
+.topnav{position:sticky;top:0;z-index:200;background:rgba(7,8,12,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border-1)}
+.topnav-inner{max-width:1700px;margin:0 auto;padding:0 24px;height:54px;display:flex;align-items:center;gap:0}
+.tnav-brand{display:flex;align-items:center;gap:9px;flex-shrink:0;text-decoration:none}
+.tnav-logo{width:30px;height:30px;background:var(--bg-3);border:1px solid var(--border-2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;font-family:'IBM Plex Mono',monospace;font-weight:800}
+.tnav-name{font-size:13px;font-weight:700;letter-spacing:-0.3px;color:var(--text-2)}
+.tnav-divider{width:1px;height:20px;background:var(--border-1);margin:0 20px;flex-shrink:0}
+.tnav-tabs{display:flex;align-items:center;gap:2px;flex:1;justify-content:center}
+.tnav-tab{display:inline-flex;align-items:center;gap:8px;padding:7px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.18s;border:1px solid transparent;background:transparent;color:var(--text-3);font-family:'DM Sans',sans-serif;letter-spacing:-0.2px;text-decoration:none}
+.tnav-tab:hover{background:var(--bg-3);color:var(--text-2)}
+.tnav-tab.active.stablecoins{background:rgba(34,197,94,0.1);color:#22c55e;border-color:rgba(34,197,94,0.18)}
+.tnav-right{display:flex;align-items:center;gap:12px;flex-shrink:0;min-width:fit-content}
+.live{display:flex;align-items:center;gap:6px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--green);background:var(--green-soft);padding:5px 12px;border-radius:16px;border:1px solid rgba(34,197,94,0.2)}
+.live-dot{width:5px;height:5px;background:var(--green);border-radius:50%;animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* HEADER */
+.hdr{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:20px}
+.hdr-left{display:flex;align-items:center;gap:14px}
+.hdr h1{font-size:22px;font-weight:800;letter-spacing:-0.5px}
+.hdr .sub{font-size:12px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.hdr-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.meta-text{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text-3)}
+.btn{background:var(--bg-3);border:1px solid var(--border-1);color:var(--text-2);padding:6px 14px;border-radius:7px;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px}
+.btn:hover{background:var(--bg-4);border-color:var(--border-2);color:var(--text-1)}
+.btn.spinning svg{animation:spin 0.8s linear infinite}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:20px}
+.stat{background:var(--bg-2);border:1px solid var(--border-1);border-radius:10px;padding:14px 16px;transition:border-color 0.15s}
+.stat:hover{border-color:var(--border-2)}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;margin-bottom:5px}
+.stat-val{font-size:28px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.stat-val.r{color:var(--red)}.stat-val.a{color:var(--amber)}.stat-val.g{color:var(--green)}.stat-val.b{color:var(--blue)}.stat-val.p{color:var(--purple)}
+.stat-sub{font-size:10px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;margin-top:3px}
+
+/* FILTERS */
+.filters{display:flex;align-items:center;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.ftab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;border:1px solid var(--border-1);background:transparent;color:var(--text-2);font-family:'DM Sans',sans-serif;white-space:nowrap}
+.ftab:hover{background:var(--bg-3);border-color:var(--border-2)}
+.ftab.active{background:var(--text-1);color:var(--bg-0);border-color:var(--text-1);font-weight:600}
+.ftab .cnt{font-family:'IBM Plex Mono',monospace;font-size:10px;margin-left:4px;opacity:0.6}
+.search{margin-left:auto;background:var(--bg-2);border:1px solid var(--border-1);border-radius:7px;padding:6px 14px;color:var(--text-1);font-family:'IBM Plex Mono',monospace;font-size:12px;width:200px;outline:none;transition:all 0.15s}
+.search::placeholder{color:var(--text-3)}
+.search:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(59,130,246,0.1)}
+
+/* TABLE */
+.tbl-wrap{background:var(--bg-1);border:1px solid var(--border-1);border-radius:12px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+thead{background:var(--bg-2)}
+th{padding:10px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;font-weight:500;border-bottom:1px solid var(--border-1);white-space:nowrap;cursor:pointer;user-select:none;transition:color 0.15s}
+th:hover{color:var(--text-2)}
+th.sorted{color:var(--blue)}
+th[data-sort]::after{content:'';margin-left:3px;opacity:0.3;font-size:9px}
+th[data-sort].sorted::after{content:' ▼';opacity:1}
+th[data-sort].sorted.asc-dir::after{content:' ▲';opacity:1}
+td{padding:10px 12px;border-bottom:1px solid var(--border-1);font-size:13px;vertical-align:middle}
+tr{transition:background 0.1s}
+tbody tr:hover{background:var(--bg-3)}
+tbody tr:last-child td{border-bottom:none}
+
+/* CELLS */
+.tk{display:flex;align-items:center;gap:10px}
+.tk-ico{width:30px;height:30px;border-radius:50%;background:var(--bg-3);border:1px solid var(--border-1);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;color:var(--text-2);flex-shrink:0;overflow:hidden}
+.tk-ico img{width:30px;height:30px;border-radius:50%;display:block}
+.tk-sym{font-weight:700;font-size:13px}
+.tk-name{font-size:10px;color:var(--text-3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tk-chains{font-size:9px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+
+/* MECHANISM BADGES */
+.mech{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.3px}
+.mech.fiat{background:var(--blue-soft);color:var(--blue);border:1px solid rgba(59,130,246,0.15)}
+.mech.cdp{background:var(--purple-soft);color:var(--purple);border:1px solid rgba(167,139,250,0.15)}
+.mech.algo{background:var(--amber-soft);color:var(--amber);border:1px solid rgba(245,158,11,0.15)}
+.mech.rwa{background:var(--cyan-soft);color:var(--cyan);border:1px solid rgba(6,182,212,0.15)}
+.mech.unknown{background:rgba(93,97,120,0.12);color:var(--text-3);border:1px solid rgba(93,97,120,0.15)}
+
+/* PRICE / PEG */
+.price-cell{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600}
+.price-cell.g{color:var(--green)}
+.price-cell.a{color:var(--amber)}
+.price-cell.r{color:var(--red)}
+.peg-delta{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;letter-spacing:-0.2px}
+.peg-delta.g{color:var(--green)}
+.peg-delta.a{color:var(--amber)}
+.peg-delta.r{color:var(--red)}
+
+.vol{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-2)}
+.mcap{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-2)}
+.pct{font-size:11px;font-family:'IBM Plex Mono',monospace}
+.pct.up{color:var(--green)}.pct.dn{color:var(--red)}
+.chain-count{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-2)}
+.rank-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-3);font-weight:500}
+
+/* RISK SCORE */
+.risk-score{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;padding:3px 8px;border-radius:4px}
+.risk-score.safe{background:var(--green-soft);color:var(--green);border:1px solid rgba(34,197,94,0.15)}
+.risk-score.low{background:rgba(34,197,94,0.06);color:#6ee7b7;border:1px solid rgba(34,197,94,0.1)}
+.risk-score.medium{background:var(--amber-soft);color:var(--amber);border:1px solid rgba(245,158,11,0.15)}
+.risk-score.high{background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.12)}
+.risk-score.critical{background:var(--red-soft);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-3)}
+.pagination button{background:var(--bg-3);border:1px solid var(--border-1);color:var(--text-2);padding:5px 12px;border-radius:5px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;transition:all 0.15s}
+.pagination button:hover{background:var(--bg-4)}
+.pagination button:disabled{opacity:0.3;cursor:not-allowed}
+
+/* LOADING */
+.loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg-0);display:flex;align-items:center;justify-content:center;z-index:100;transition:opacity 0.4s}
+.loading-overlay.hidden{opacity:0;pointer-events:none;visibility:hidden}
+.loader{text-align:center;padding:32px}
+.loader .lname{font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:24px;color:var(--text-1)}
+.loader .lname span{color:var(--green)}
+.loader .spinner{width:36px;height:36px;border:2px solid var(--border-2);border-top-color:var(--green);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 16px}
+.loader .ltxt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-3);margin-bottom:20px}
+.loader .lprog{width:200px;height:2px;background:var(--border-1);border-radius:1px;margin:0 auto;overflow:hidden}
+.loader .lprog-fill{height:100%;width:0%;background:var(--green);border-radius:1px;transition:width 0.5s ease}
+
+/* FOOTER */
+.footer{margin-top:36px;text-align:center;font-size:11px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;padding:20px 0;border-top:1px solid var(--border-1)}
+.footer a{color:var(--blue);text-decoration:none}
+
+/* EMPTY */
+.empty-state{padding:48px;text-align:center;color:var(--text-3);font-family:'IBM Plex Mono',monospace;font-size:13px}
+
+/* RESPONSIVE */
+@media(max-width:900px){.wrap{padding:16px 12px}.hdr{flex-direction:column}.search{width:100%;margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.tnav-name{display:none}.tnav-divider{display:none}.tnav-tabs{justify-content:flex-start}.tnav-tab{padding:6px 14px;font-size:12px}.topnav-inner{padding:0 14px}.col-mcap,.col-vol,.col-chg,.col-chains{display:none}table{min-width:520px}}
+@media(max-width:480px){.stats{grid-template-columns:1fr}}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg-1)}::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a class="tnav-brand" href="https://shitcoin.io">
+      <div class="tnav-logo">⚡</div>
+      <span class="tnav-name">Crypto Monitor</span>
+    </a>
+    <div class="tnav-divider"></div>
+    <div class="tnav-tabs">
+      <a class="tnav-tab" href="https://shitcoin.io">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path fill="#F0B90B" d="M7 1 4.8 3.2 7 5.4 9.2 3.2z"/><path fill="#F0B90B" d="M1 7 3.2 4.8 5.4 7 3.2 9.2z"/><path fill="#F0B90B" d="M13 7 10.8 4.8 8.6 7 10.8 9.2z"/><path fill="#F0B90B" d="M7 8.6 4.8 10.8 7 13 9.2 10.8z"/><path fill="#F0B90B" d="M7 4.8 5.1 6.7 7 8.6 8.9 6.7z"/></svg>
+        Binance
+      </a>
+      <a class="tnav-tab" href="https://shitcoin.io">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect width="14" height="14" rx="3.5" fill="#0052FF"/><circle cx="7" cy="7" r="3.5" fill="#0052FF"/><circle cx="7" cy="7" r="3.5" stroke="white" stroke-width="1.5" fill="none"/><rect x="3.5" y="5.9" width="7" height="2.2" fill="#0052FF"/></svg>
+        Coinbase
+      </a>
+      <a class="tnav-tab active stablecoins" href="/">
+        💲 Stablecoins
+      </a>
+    </div>
+    <div class="tnav-right">
+      <div class="live" id="tnav-live" style="display:none"><span class="live-dot"></span>LIVE</div>
+    </div>
+  </div>
+</nav>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="sc-loader">
+  <div class="loader">
+    <div class="lname">💲 <span>Stablecoin</span> Monitor</div>
+    <div class="spinner"></div>
+    <div class="ltxt" id="sc-ltxt">Fetching peg data...</div>
+    <div class="lprog"><div class="lprog-fill" id="sc-lprog"></div></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="wrap">
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <div>
+        <h1>Stablecoin Monitor</h1>
+        <div class="sub mono">peg health · risk scores · market caps · mechanism analysis</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <span class="meta-text" id="sc-updTime"></span>
+      <span class="meta-text" id="sc-refreshTimer"></span>
+      <button class="btn" id="sc-refreshBtn" onclick="doRefresh()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats" id="sc-stats">
+    <div class="stat"><div class="stat-label">Total Market Cap</div><div class="stat-val b">—</div><div class="stat-sub">all tracked stablecoins</div></div>
+    <div class="stat"><div class="stat-label">✅ At Peg</div><div class="stat-val g">—</div><div class="stat-sub">within 0.5% of $1.00</div></div>
+    <div class="stat"><div class="stat-label">⚠ At Risk</div><div class="stat-val a">—</div><div class="stat-sub">0.5% – 2% deviation</div></div>
+    <div class="stat"><div class="stat-label">🚨 Depegged</div><div class="stat-val r">—</div><div class="stat-sub">over 2% deviation</div></div>
+    <div class="stat"><div class="stat-label">Largest</div><div class="stat-val p">—</div><div class="stat-sub">by market cap</div></div>
+    <div class="stat"><div class="stat-label">Tracked</div><div class="stat-val">—</div><div class="stat-sub">stablecoins monitored</div></div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters" id="sc-filters">
+    <button class="ftab active" data-f="all" onclick="setFilter('all')">📋 All</button>
+    <button class="ftab" data-f="pegged" onclick="setFilter('pegged')">✅ Pegged</button>
+    <button class="ftab" data-f="atrisk" onclick="setFilter('atrisk')">⚠ At Risk</button>
+    <button class="ftab" data-f="depegged" onclick="setFilter('depegged')">🚨 Depegged</button>
+    <button class="ftab" data-f="fiat" onclick="setFilter('fiat')">🏦 Fiat</button>
+    <button class="ftab" data-f="cdp" onclick="setFilter('cdp')">⛓ CDP</button>
+    <button class="ftab" data-f="algo" onclick="setFilter('algo')">🤖 Algo</button>
+    <input class="search" type="text" placeholder="Search stablecoins..." id="sc-search" oninput="onSearch(this.value)">
+  </div>
+
+  <!-- TABLE -->
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:38px;cursor:default">#</th>
+          <th data-sort="symbol" onclick="sortBy('symbol')">Stablecoin</th>
+          <th data-sort="mech" onclick="sortBy('mech')">Mechanism</th>
+          <th data-sort="price" onclick="sortBy('price')">Price</th>
+          <th data-sort="peg" onclick="sortBy('peg')">Peg Δ</th>
+          <th class="col-mcap" data-sort="mcap" onclick="sortBy('mcap')">Mkt Cap</th>
+          <th class="col-vol" data-sort="vol24h" onclick="sortBy('vol24h')">24h Vol</th>
+          <th class="col-chg" data-sort="change24h" onclick="sortBy('change24h')">24h %</th>
+          <th class="col-chains" data-sort="chainCount" onclick="sortBy('chainCount')">Chains</th>
+          <th data-sort="_risk" onclick="sortBy('_risk')">Risk</th>
+        </tr>
+      </thead>
+      <tbody id="sc-tbody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="sc-pagination"></div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Data from <a href="https://defillama.com" target="_blank">DeFi Llama</a> + <a href="https://coingecko.com" target="_blank">CoinGecko</a> · Risk scores based on peg deviation, mechanism, and market cap · Auto-refresh every 3 min<br>
+    Part of <a href="https://shitcoin.io">Crypto Monitor</a> · Stablecoin peg health monitoring
+  </div>
+</div>
+
+<script>
+const HARDCODED = [
+  { llamaId: '1',   sym: 'USDT',   name: 'Tether',            cgId: 'tether',               mech: 'fiat',  chains_hint: 20 },
+  { llamaId: '2',   sym: 'USDC',   name: 'USD Coin',          cgId: 'usd-coin',             mech: 'fiat',  chains_hint: 15 },
+  { llamaId: '3',   sym: 'BUSD',   name: 'Binance USD',       cgId: 'binance-usd',          mech: 'fiat',  chains_hint: 3  },
+  { llamaId: '4',   sym: 'DAI',    name: 'Dai',               cgId: 'dai',                  mech: 'cdp',   chains_hint: 12 },
+  { llamaId: '5',   sym: 'FRAX',   name: 'Frax',              cgId: 'frax',                 mech: 'algo',  chains_hint: 12 },
+  { llamaId: '6',   sym: 'TUSD',   name: 'TrueUSD',           cgId: 'true-usd',             mech: 'fiat',  chains_hint: 5  },
+  { llamaId: '7',   sym: 'USDP',   name: 'Pax Dollar',        cgId: 'paxos-standard',       mech: 'fiat',  chains_hint: 2  },
+  { llamaId: '8',   sym: 'USDD',   name: 'USDD',              cgId: 'usdd',                 mech: 'algo',  chains_hint: 4  },
+  { llamaId: '9',   sym: 'GUSD',   name: 'Gemini Dollar',     cgId: 'gemini-dollar',        mech: 'fiat',  chains_hint: 2  },
+  { llamaId: '161', sym: 'FDUSD',  name: 'First Digital USD', cgId: 'first-digital-usd',    mech: 'fiat',  chains_hint: 3  },
+  { llamaId: '146', sym: 'PYUSD',  name: 'PayPal USD',        cgId: 'paypal-usd',           mech: 'fiat',  chains_hint: 2  },
+  { llamaId: '149', sym: 'USDE',   name: 'USDe',              cgId: 'ethena-usde',          mech: 'cdp',   chains_hint: 5  },
+  { llamaId: '132', sym: 'crvUSD', name: 'Curve USD',         cgId: 'crvusd',               mech: 'cdp',   chains_hint: 1  },
+  { llamaId: '133', sym: 'GHO',    name: 'GHO',               cgId: 'gho',                  mech: 'cdp',   chains_hint: 2  },
+  { llamaId: '11',  sym: 'LUSD',   name: 'Liquity USD',       cgId: 'liquity-usd',          mech: 'cdp',   chains_hint: 3  },
+  { llamaId: '10',  sym: 'sUSD',   name: 'Synthetix USD',     cgId: 'nusd',                 mech: 'cdp',   chains_hint: 2  },
+  { llamaId: '12',  sym: 'MIM',    name: 'Magic Internet $',  cgId: 'magic-internet-money', mech: 'cdp',   chains_hint: 7  },
+  { llamaId: '15',  sym: 'UST',    name: 'TerraUSD (Classic)',cgId: 'terrausd',             mech: 'algo',  chains_hint: 2, depegged: true },
+  { llamaId: '23',  sym: 'EURS',   name: 'STASIS EURO',       cgId: 'stasis-eurs',          mech: 'fiat',  chains_hint: 2  },
+  { llamaId: '29',  sym: 'EURT',   name: 'Euro Tether',       cgId: 'tether-eurt',          mech: 'fiat',  chains_hint: 2  },
+];
+
+let allCoins = [];
+let currentFilter = 'all';
+let searchQuery = '';
+let sortKey = 'mcap';
+let sortAsc = false;
+let currentPage = 1;
+const PAGE_SIZE = 50;
+let refreshTimer = null;
+let timerSeconds = 180;
+
+// ---- Helpers ----
+
+function formatUSD(n) {
+  if (!n || n === 0) return '—';
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K';
+  return '$' + n.toFixed(0);
+}
+
+function formatPrice(p) {
+  if (!p) return '—';
+  return '$' + p.toFixed(p > 0.999 && p < 1.001 ? 4 : 6);
+}
+
+function pegDelta(price) {
+  const d = (price - 1.0) * 100;
+  const sign = d >= 0 ? '+' : '';
+  return sign + d.toFixed(4) + '%';
+}
+
+function pegDeltaClass(price) {
+  const dev = Math.abs(price - 1.0);
+  if (dev <= 0.001) return 'g';
+  if (dev <= 0.01) return 'a';
+  return 'r';
+}
+
+function priceClass(price) {
+  const dev = Math.abs(price - 1.0);
+  if (dev <= 0.001) return 'g';
+  if (dev <= 0.01) return 'a';
+  return 'r';
+}
+
+function normalizeMech(raw) {
+  if (!raw) return 'unknown';
+  const r = raw.toLowerCase();
+  if (r.includes('fiat')) return 'fiat';
+  if (r.includes('algo')) return 'algo';
+  if (r.includes('crypto') || r.includes('cdp') || r.includes('collateral')) return 'cdp';
+  if (r.includes('rwa')) return 'rwa';
+  return 'unknown';
+}
+
+function calcRisk(coin) {
+  if (coin.depegged) return 95;
+  let score = 0;
+  const dev = Math.abs((coin.price || 1) - 1.0);
+  if (dev > 0.10) score += 50;
+  else if (dev > 0.05) score += 40;
+  else if (dev > 0.02) score += 30;
+  else if (dev > 0.01) score += 20;
+  else if (dev > 0.005) score += 10;
+  else if (dev > 0.001) score += 3;
+
+  const mech = coin.mech || 'unknown';
+  if (mech === 'algo') score += 30;
+  else if (mech === 'cdp') score += 12;
+  else if (mech === 'rwa') score += 8;
+  else if (mech === 'fiat') score += 2;
+  else score += 18;
+
+  const m = coin.mcap || 0;
+  if (m < 5_000_000) score += 18;
+  else if (m < 50_000_000) score += 12;
+  else if (m < 500_000_000) score += 6;
+  else if (m < 5_000_000_000) score += 2;
+
+  return Math.min(score, 100);
+}
+
+function getStatus(coin) {
+  if (coin.depegged) return 'depegged';
+  const dev = Math.abs((coin.price || 1) - 1.0);
+  if (dev > 0.02) return 'depegged';
+  if (dev > 0.005) return 'atrisk';
+  return 'pegged';
+}
+
+function riskBadge(score) {
+  let cls;
+  if (score <= 10) cls = 'safe';
+  else if (score <= 25) cls = 'low';
+  else if (score <= 50) cls = 'medium';
+  else if (score <= 75) cls = 'high';
+  else cls = 'critical';
+  return \`<span class="risk-score \${cls}">\${score}</span>\`;
+}
+
+function mechBadge(mech) {
+  const labels = { fiat: 'Fiat', cdp: 'CDP', algo: 'Algo', rwa: 'RWA', unknown: '?' };
+  const label = labels[mech] || mech;
+  return \`<span class="mech \${mech}">\${label}</span>\`;
+}
+
+function iconFallback(sym) {
+  return sym.slice(0, 3).toUpperCase();
+}
+
+// ---- Filter / Sort ----
+
+function setFilter(f) {
+  currentFilter = f;
+  currentPage = 1;
+  document.querySelectorAll('.ftab').forEach(t => t.classList.toggle('active', t.dataset.f === f));
+  renderTable();
+}
+
+function onSearch(q) {
+  searchQuery = q;
+  currentPage = 1;
+  renderTable();
+}
+
+function getFiltered() {
+  return allCoins.filter(c => {
+    if (currentFilter === 'pegged') return c._status === 'pegged';
+    if (currentFilter === 'atrisk') return c._status === 'atrisk';
+    if (currentFilter === 'depegged') return c._status === 'depegged';
+    if (currentFilter === 'fiat') return c.mech === 'fiat';
+    if (currentFilter === 'cdp') return c.mech === 'cdp';
+    if (currentFilter === 'algo') return c.mech === 'algo';
+    return true;
+  }).filter(c => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return c.sym.toLowerCase().includes(q) || c.name.toLowerCase().includes(q);
+  });
+}
+
+function sortBy(key) {
+  if (sortKey === key) sortAsc = !sortAsc;
+  else { sortKey = key; sortAsc = false; }
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.classList.toggle('sorted', th.dataset.sort === key);
+    th.classList.toggle('asc-dir', th.dataset.sort === key && sortAsc);
+  });
+  renderTable();
+}
+
+function getSorted(coins) {
+  return [...coins].sort((a, b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (sortKey === 'peg') { av = Math.abs((a.price||1)-1); bv = Math.abs((b.price||1)-1); }
+    if (sortKey === 'symbol') { av = a.sym; bv = b.sym; }
+    if (typeof av === 'string') return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+    return sortAsc ? (av||0)-(bv||0) : (bv||0)-(av||0);
+  });
+}
+
+// ---- Render ----
+
+function renderStats() {
+  const all = allCoins;
+  const totalMcap = all.reduce((s, c) => s + (c.mcap||0), 0);
+  const atPeg = all.filter(c => c._status === 'pegged').length;
+  const atRisk = all.filter(c => c._status === 'atrisk').length;
+  const depegged = all.filter(c => c._status === 'depegged').length;
+  const largest = all.reduce((best, c) => (c.mcap||0) > (best?.mcap||0) ? c : best, null);
+
+  document.getElementById('sc-stats').innerHTML = \`
+    <div class="stat"><div class="stat-label">Total Market Cap</div><div class="stat-val b">\${formatUSD(totalMcap)}</div><div class="stat-sub">all tracked stablecoins</div></div>
+    <div class="stat"><div class="stat-label">✅ At Peg</div><div class="stat-val g">\${atPeg}</div><div class="stat-sub">within 0.5% of $1.00</div></div>
+    <div class="stat"><div class="stat-label">⚠ At Risk</div><div class="stat-val a">\${atRisk}</div><div class="stat-sub">0.5% – 2% deviation</div></div>
+    <div class="stat"><div class="stat-label">🚨 Depegged</div><div class="stat-val r">\${depegged}</div><div class="stat-sub">over 2% deviation</div></div>
+    <div class="stat"><div class="stat-label">Largest</div><div class="stat-val p">\${largest?.sym||'—'}</div><div class="stat-sub">\${formatUSD(largest?.mcap||0)}</div></div>
+    <div class="stat"><div class="stat-label">Tracked</div><div class="stat-val">\${all.length}</div><div class="stat-sub">stablecoins monitored</div></div>
+  \`;
+}
+
+function renderTable() {
+  const filtered = getFiltered();
+  const sorted = getSorted(filtered);
+  const total = sorted.length;
+  const maxPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > maxPage) currentPage = maxPage;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page = sorted.slice(start, start + PAGE_SIZE);
+
+  const tbody = document.getElementById('sc-tbody');
+
+  if (page.length === 0) {
+    tbody.innerHTML = \`<tr><td colspan="10"><div class="empty-state">No stablecoins match your filter.</div></td></tr>\`;
+    document.getElementById('sc-pagination').innerHTML = '';
+    return;
+  }
+
+  // Build rank lookup from allCoins (sorted by mcap) for stable rank
+  const rankMap = {};
+  [...allCoins].sort((a,b)=>(b.mcap||0)-(a.mcap||0)).forEach((c,i)=>{ rankMap[c.sym+c.llamaId] = i+1; });
+
+  tbody.innerHTML = page.map(c => {
+    const rank = rankMap[c.sym+c.llamaId] || '—';
+    const price = c.price || 1.0;
+    const pdCls = pegDeltaClass(price);
+    const priceCls = priceClass(price);
+    const iconHtml = c.icon
+      ? \`<img src="\${c.icon}" alt="\${c.sym}" onerror="this.parentNode.innerHTML='\${iconFallback(c.sym)}'">\`
+      : iconFallback(c.sym);
+    const chgCls = (c.change24h||0) >= 0 ? 'up' : 'dn';
+    const chgSign = (c.change24h||0) >= 0 ? '+' : '';
+
+    return \`<tr>
+      <td><span class="rank-num">\${rank}</span></td>
+      <td>
+        <div class="tk">
+          <div class="tk-ico">\${iconHtml}</div>
+          <div>
+            <div class="tk-sym">\${c.sym}</div>
+            <div class="tk-name">\${c.name}</div>
+            <div class="tk-chains">\${c.chainCount > 0 ? c.chainCount + ' chain' + (c.chainCount !== 1 ? 's' : '') : ''}</div>
+          </div>
+        </div>
+      </td>
+      <td>\${mechBadge(c.mech)}</td>
+      <td><span class="price-cell \${priceCls}">\${formatPrice(price)}</span></td>
+      <td><span class="peg-delta \${pdCls}">\${pegDelta(price)}</span></td>
+      <td class="col-mcap"><span class="mcap">\${formatUSD(c.mcap)}</span></td>
+      <td class="col-vol"><span class="vol">\${formatUSD(c.vol24h)}</span></td>
+      <td class="col-chg"><span class="pct \${chgCls}">\${c.vol24h > 0 ? chgSign + (c.change24h||0).toFixed(2) + '%' : '—'}</span></td>
+      <td class="col-chains"><span class="chain-count">\${c.chainCount || '—'}</span></td>
+      <td>\${riskBadge(c._risk)}</td>
+    </tr>\`;
+  }).join('');
+
+  renderPagination(total, maxPage);
+}
+
+function renderPagination(total, maxPage) {
+  const pg = document.getElementById('sc-pagination');
+  if (maxPage <= 1) { pg.innerHTML = ''; return; }
+  pg.innerHTML = \`
+    <button onclick="goPage(\${currentPage-1})" \${currentPage<=1?'disabled':''}>← Prev</button>
+    <span class="pg-info">Page \${currentPage} of \${maxPage} · \${total} coins</span>
+    <button onclick="goPage(\${currentPage+1})" \${currentPage>=maxPage?'disabled':''}>Next →</button>
+  \`;
+}
+
+function goPage(p) {
+  currentPage = p;
+  renderTable();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderAll() {
+  renderStats();
+  renderTable();
+}
+
+// ---- Data fetching ----
+
+async function fetchData() {
+  setProgress(10, 'Fetching peg data...');
+
+  let llamaCoins = [];
+  try {
+    const llamaResp = await fetch('/llama/stablecoins?includePrices=true');
+    const llamaData = await llamaResp.json();
+    llamaCoins = llamaData.peggedAssets || [];
+    setProgress(50, 'Fetching market data...');
+  } catch(e) {
+    setProgress(50, 'Llama fetch failed, using fallback...');
+  }
+
+  const llamaById = {};
+  llamaCoins.forEach(c => { llamaById[String(c.id)] = c; });
+
+  let cgData = [];
+  try {
+    const cgIds = HARDCODED.map(h => h.cgId).join(',');
+    const cgResp = await fetch(\`/cg/coins/markets?vs_currency=usd&ids=\${cgIds}&per_page=50\`);
+    cgData = await cgResp.json().catch(() => []);
+    setProgress(80, 'Processing data...');
+  } catch(e) {
+    setProgress(80, 'CoinGecko fetch failed...');
+  }
+
+  const cgById = {};
+  (Array.isArray(cgData) ? cgData : []).forEach(c => { cgById[c.id] = c; });
+
+  // Merge hardcoded entries
+  allCoins = HARDCODED.map(hc => {
+    const llama = llamaById[hc.llamaId] || {};
+    const cg = cgById[hc.cgId] || {};
+
+    const circ = llama.circulating || {};
+    const mcap = Object.values(circ).reduce((a, v) => a + (typeof v === 'number' ? v : 0), 0);
+
+    return {
+      ...hc,
+      price: llama.price || cg.current_price || 1.0,
+      mcap: mcap || cg.market_cap || 0,
+      vol24h: cg.total_volume || 0,
+      change24h: cg.price_change_percentage_24h || 0,
+      chains: llama.chains || [],
+      chainCount: (llama.chains || []).length || hc.chains_hint || 0,
+      icon: cg.image || null,
+      pegType: llama.pegType || 'peggedUSD',
+    };
+  });
+
+  // Add large coins from DeFi Llama not in hardcoded list
+  llamaCoins.forEach(lc => {
+    if (HARDCODED.find(h => h.llamaId === String(lc.id))) return;
+    const circ = lc.circulating || {};
+    const mcap = circ.peggedUSD || 0;
+    if (mcap < 10_000_000) return;
+    if (!(lc.pegType || '').includes('USD')) return;
+
+    allCoins.push({
+      llamaId: String(lc.id),
+      sym: lc.symbol || '?',
+      name: lc.name || lc.symbol || '?',
+      cgId: lc.gecko_id || null,
+      mech: normalizeMech(lc.pegMechanism),
+      price: lc.price || 1.0,
+      mcap,
+      vol24h: 0,
+      change24h: 0,
+      chains: lc.chains || [],
+      chainCount: (lc.chains || []).length,
+      icon: null,
+      pegType: lc.pegType,
+    });
+  });
+
+  // Sort by mcap desc
+  allCoins.sort((a, b) => (b.mcap||0) - (a.mcap||0));
+
+  // Compute risk scores and status
+  allCoins.forEach(c => {
+    c._risk = calcRisk(c);
+    c._status = getStatus(c);
+  });
+
+  setProgress(100, 'Done!');
+
+  setTimeout(() => {
+    document.getElementById('sc-loader').classList.add('hidden');
+    document.getElementById('tnav-live').style.display = '';
+  }, 400);
+
+  const now = new Date();
+  document.getElementById('sc-updTime').textContent = 'updated ' + now.toLocaleTimeString();
+
+  startRefreshTimer();
+  renderAll();
+}
+
+function setProgress(pct, txt) {
+  const fill = document.getElementById('sc-lprog');
+  const ltxt = document.getElementById('sc-ltxt');
+  if (fill) fill.style.width = pct + '%';
+  if (ltxt) ltxt.textContent = txt;
+}
+
+// ---- Refresh ----
+
+function startRefreshTimer() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  timerSeconds = 180;
+  updateTimerDisplay();
+  refreshTimer = setInterval(() => {
+    timerSeconds--;
+    if (timerSeconds <= 0) {
+      clearInterval(refreshTimer);
+      doSilentRefresh();
+    } else {
+      updateTimerDisplay();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  const el = document.getElementById('sc-refreshTimer');
+  if (el) el.textContent = \`next: \${m}:\${String(s).padStart(2,'0')}\`;
+}
+
+async function doSilentRefresh() {
+  await fetchData();
+}
+
+function doRefresh() {
+  const btn = document.getElementById('sc-refreshBtn');
+  btn.classList.add('spinning');
+  if (refreshTimer) clearInterval(refreshTimer);
+  fetchData().finally(() => {
+    btn.classList.remove('spinning');
+  });
+}
+
+// ---- Init ----
+fetchData();
+</script>
+</body>
+</html>
+`;
+
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET' } });
+    }
+
+    if (path === '/' || path === '/index.html') {
+      return new Response(HTML, { headers: { 'Content-Type': 'text/html;charset=UTF-8', 'Cache-Control': 'public, max-age=60' } });
+    }
+
+    // Proxy DeFi Llama stablecoins API
+    if (path.startsWith('/llama/')) {
+      const upstream = LLAMA_BASE + path.slice(6) + url.search;
+      return cachedProxy(request, upstream, getTTL(path));
+    }
+
+    // Proxy CoinGecko
+    if (path.startsWith('/cg/')) {
+      const upstream = COINGECKO_BASE + path.slice(3) + url.search;
+      return cachedProxy(request, upstream, getTTL(path));
+    }
+
+    return new Response('Not Found', { status: 404 });
+  }
+};

@@ -1,0 +1,11 @@
+name = "stablecoin"
+main = "worker.dist.js"
+compatibility_date = "2024-01-01"
+workers_dev = true
+
+[build]
+command = "node build.js"
+
+[[routes]]
+pattern = "stablecoin.io/*"
+zone_name = "stablecoin.io"
