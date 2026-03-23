@@ -116,6 +116,22 @@ tbody tr:last-child td{border-bottom:none}
 .tk-sym{font-weight:700;font-size:13px}
 .tk-name{font-size:10px;color:var(--text-3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tk-chains{font-size:9px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.chain-icons{display:flex;gap:3px;align-items:center;flex-wrap:nowrap}
+.chain-ico{width:16px;height:16px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--bg-3);border:1px solid var(--border-1);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:var(--text-3)}
+.chain-ico img{width:16px;height:16px;border-radius:50%;display:block}
+.chain-more{font-size:9px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.ex-badges{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
+.ex-badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 4px;border-radius:3px;font-size:8px;font-weight:800;font-family:'IBM Plex Mono',monospace;letter-spacing:0;cursor:default}
+.ex-badge.binance{background:rgba(240,185,11,0.15);color:#F0B90B;border:1px solid rgba(240,185,11,0.2)}
+.ex-badge.coinbase{background:rgba(0,82,255,0.15);color:#6b9fff;border:1px solid rgba(0,82,255,0.2)}
+.ex-badge.kraken{background:rgba(87,65,217,0.15);color:#a78bfa;border:1px solid rgba(87,65,217,0.2)}
+.ex-badge.okx{background:rgba(255,255,255,0.08);color:var(--text-2);border:1px solid var(--border-2)}
+.ex-badge.bybit{background:rgba(247,166,0,0.15);color:#fbbf24;border:1px solid rgba(247,166,0,0.2)}
+.ex-badge.bitfinex{background:rgba(22,177,87,0.15);color:#4ade80;border:1px solid rgba(22,177,87,0.2)}
+.ex-badge.kucoin{background:rgba(0,218,154,0.15);color:#34d399;border:1px solid rgba(0,218,154,0.2)}
+.ex-badge.bitget{background:rgba(0,200,255,0.12);color:#22d3ee;border:1px solid rgba(0,200,255,0.18)}
+.ex-badge.gate{background:rgba(227,6,19,0.12);color:#f87171;border:1px solid rgba(227,6,19,0.18)}
+.ex-badge.upbit{background:rgba(0,44,134,0.2);color:#60a5fa;border:1px solid rgba(0,44,134,0.25)}
 
 /* MECHANISM BADGES */
 .mech{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.3px}
@@ -176,7 +192,7 @@ tbody tr:last-child td{border-bottom:none}
 
 /* RESPONSIVE */
 @media(max-width:900px){.wrap{padding:16px 12px}.hdr{flex-direction:column}.search{width:100%;margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:640px){.tnav-name{display:none}.tnav-divider{display:none}.tnav-tabs{justify-content:flex-start}.tnav-tab{padding:6px 14px;font-size:12px}.topnav-inner{padding:0 14px}.col-mcap,.col-vol,.col-chg,.col-chains{display:none}table{min-width:520px}}
+@media(max-width:640px){.tnav-name{display:none}.tnav-divider{display:none}.tnav-tabs{justify-content:flex-start}.tnav-tab{padding:6px 14px;font-size:12px}.topnav-inner{padding:0 14px}.col-mcap,.col-vol,.col-chg,.col-chains,.col-exchanges{display:none}table{min-width:520px}}
 @media(max-width:480px){.stats{grid-template-columns:1fr}}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg-1)}::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
 </style>
@@ -276,6 +292,7 @@ tbody tr:last-child td{border-bottom:none}
           <th class="col-vol" data-sort="vol24h" onclick="sortBy('vol24h')">24h Vol</th>
           <th class="col-chg" data-sort="change24h" onclick="sortBy('change24h')">24h %</th>
           <th class="col-chains" data-sort="chainCount" onclick="sortBy('chainCount')">Chains</th>
+          <th class="col-exchanges">Exchanges</th>
           <th data-sort="_risk" onclick="sortBy('_risk')">Risk</th>
         </tr>
       </thead>
@@ -293,26 +310,66 @@ tbody tr:last-child td{border-bottom:none}
 
 <script>
 const HARDCODED = [
-  { llamaId: '1',   sym: 'USDT',   name: 'Tether',            cgId: 'tether',               mech: 'fiat',  chains_hint: 20 },
-  { llamaId: '2',   sym: 'USDC',   name: 'USD Coin',          cgId: 'usd-coin',             mech: 'fiat',  chains_hint: 15 },
-  { llamaId: '3',   sym: 'BUSD',   name: 'Binance USD',       cgId: 'binance-usd',          mech: 'fiat',  chains_hint: 3  },
-  { llamaId: '4',   sym: 'DAI',    name: 'Dai',               cgId: 'dai',                  mech: 'cdp',   chains_hint: 12 },
-  { llamaId: '5',   sym: 'FRAX',   name: 'Frax',              cgId: 'frax',                 mech: 'algo',  chains_hint: 12 },
-  { llamaId: '6',   sym: 'TUSD',   name: 'TrueUSD',           cgId: 'true-usd',             mech: 'fiat',  chains_hint: 5  },
-  { llamaId: '7',   sym: 'USDP',   name: 'Pax Dollar',        cgId: 'paxos-standard',       mech: 'fiat',  chains_hint: 2  },
-  { llamaId: '8',   sym: 'USDD',   name: 'USDD',              cgId: 'usdd',                 mech: 'algo',  chains_hint: 4  },
-  { llamaId: '9',   sym: 'GUSD',   name: 'Gemini Dollar',     cgId: 'gemini-dollar',        mech: 'fiat',  chains_hint: 2  },
-  { llamaId: '161', sym: 'FDUSD',  name: 'First Digital USD', cgId: 'first-digital-usd',    mech: 'fiat',  chains_hint: 3  },
-  { llamaId: '146', sym: 'PYUSD',  name: 'PayPal USD',        cgId: 'paypal-usd',           mech: 'fiat',  chains_hint: 2  },
-  { llamaId: '149', sym: 'USDE',   name: 'USDe',              cgId: 'ethena-usde',          mech: 'cdp',   chains_hint: 5  },
-  { llamaId: '132', sym: 'crvUSD', name: 'Curve USD',         cgId: 'crvusd',               mech: 'cdp',   chains_hint: 1  },
-  { llamaId: '133', sym: 'GHO',    name: 'GHO',               cgId: 'gho',                  mech: 'cdp',   chains_hint: 2  },
-  { llamaId: '11',  sym: 'LUSD',   name: 'Liquity USD',       cgId: 'liquity-usd',          mech: 'cdp',   chains_hint: 3  },
-  { llamaId: '10',  sym: 'sUSD',   name: 'Synthetix USD',     cgId: 'nusd',                 mech: 'cdp',   chains_hint: 2  },
-  { llamaId: '12',  sym: 'MIM',    name: 'Magic Internet $',  cgId: 'magic-internet-money', mech: 'cdp',   chains_hint: 7  },
-  { llamaId: '15',  sym: 'UST',    name: 'TerraUSD (Classic)',cgId: 'terrausd',             mech: 'algo',  chains_hint: 2, depegged: true },
-  { llamaId: '23',  sym: 'EURS',   name: 'STASIS EURO',       cgId: 'stasis-eurs',          mech: 'fiat',  chains_hint: 2  },
-  { llamaId: '29',  sym: 'EURT',   name: 'Euro Tether',       cgId: 'tether-eurt',          mech: 'fiat',  chains_hint: 2  },
+  { llamaId: '1',   sym: 'USDT',   name: 'Tether',            cgId: 'tether',               mech: 'fiat',  chains_hint: 20,
+    icon: 'https://coin-images.coingecko.com/coins/images/325/small/Tether.png',
+    exchanges: ['binance','coinbase','kraken','okx','bybit','bitfinex','kucoin','gate'] },
+  { llamaId: '2',   sym: 'USDC',   name: 'USD Coin',          cgId: 'usd-coin',             mech: 'fiat',  chains_hint: 15,
+    icon: 'https://coin-images.coingecko.com/coins/images/6319/small/usdc.png',
+    exchanges: ['binance','coinbase','kraken','okx','bybit','kucoin','bitget'] },
+  { llamaId: '4',   sym: 'DAI',    name: 'Dai',               cgId: 'dai',                  mech: 'cdp',   chains_hint: 12,
+    icon: 'https://coin-images.coingecko.com/coins/images/9956/small/Badge_Dai.png',
+    exchanges: ['coinbase','kraken','binance','okx','kucoin','gate'] },
+  { llamaId: '149', sym: 'USDE',   name: 'USDe',              cgId: 'ethena-usde',          mech: 'cdp',   chains_hint: 5,
+    icon: 'https://coin-images.coingecko.com/coins/images/33613/small/USDE.png',
+    exchanges: ['binance','okx','bybit','kucoin','bitget'] },
+  { llamaId: '161', sym: 'FDUSD',  name: 'First Digital USD', cgId: 'first-digital-usd',    mech: 'fiat',  chains_hint: 3,
+    icon: 'https://coin-images.coingecko.com/coins/images/31079/small/firstfigital.png',
+    exchanges: ['binance'] },
+  { llamaId: '5',   sym: 'FRAX',   name: 'Frax',              cgId: 'frax',                 mech: 'algo',  chains_hint: 12,
+    icon: 'https://coin-images.coingecko.com/coins/images/13422/small/FRAX_icon.png',
+    exchanges: ['okx','gate','kucoin'] },
+  { llamaId: '6',   sym: 'TUSD',   name: 'TrueUSD',           cgId: 'true-usd',             mech: 'fiat',  chains_hint: 5,
+    icon: 'https://coin-images.coingecko.com/coins/images/3449/small/tusd.png',
+    exchanges: ['binance','okx','kucoin','gate'] },
+  { llamaId: '146', sym: 'PYUSD',  name: 'PayPal USD',        cgId: 'paypal-usd',           mech: 'fiat',  chains_hint: 2,
+    icon: 'https://coin-images.coingecko.com/coins/images/31212/small/PYUSD.png',
+    exchanges: ['coinbase','kraken'] },
+  { llamaId: '8',   sym: 'USDD',   name: 'USDD',              cgId: 'usdd',                 mech: 'algo',  chains_hint: 4,
+    icon: 'https://coin-images.coingecko.com/coins/images/25380/small/USDD.png',
+    exchanges: ['bybit','okx','kucoin','gate','bitget'] },
+  { llamaId: '7',   sym: 'USDP',   name: 'Pax Dollar',        cgId: 'paxos-standard',       mech: 'fiat',  chains_hint: 2,
+    icon: 'https://coin-images.coingecko.com/coins/images/6013/small/Pax_Dollar.png',
+    exchanges: ['kraken','bitfinex'] },
+  { llamaId: '9',   sym: 'GUSD',   name: 'Gemini Dollar',     cgId: 'gemini-dollar',        mech: 'fiat',  chains_hint: 2,
+    icon: 'https://coin-images.coingecko.com/coins/images/5992/small/gemini-dollar-gusd.png',
+    exchanges: ['kraken','bitfinex'] },
+  { llamaId: '11',  sym: 'LUSD',   name: 'Liquity USD',       cgId: 'liquity-usd',          mech: 'cdp',   chains_hint: 3,
+    icon: 'https://coin-images.coingecko.com/coins/images/14666/small/Group_3.png',
+    exchanges: ['kraken','kucoin','gate'] },
+  { llamaId: '133', sym: 'GHO',    name: 'GHO',               cgId: 'gho',                  mech: 'cdp',   chains_hint: 2,
+    icon: 'https://coin-images.coingecko.com/coins/images/30663/small/gho-token-logo.png',
+    exchanges: ['kraken','okx'] },
+  { llamaId: '132', sym: 'crvUSD', name: 'Curve USD',         cgId: 'crvusd',               mech: 'cdp',   chains_hint: 1,
+    icon: 'https://coin-images.coingecko.com/coins/images/30118/small/crvusd.png',
+    exchanges: ['okx','gate'] },
+  { llamaId: '10',  sym: 'sUSD',   name: 'Synthetix USD',     cgId: 'nusd',                 mech: 'cdp',   chains_hint: 2,
+    icon: 'https://coin-images.coingecko.com/coins/images/5013/small/sUSD.png',
+    exchanges: ['kraken','kucoin'] },
+  { llamaId: '12',  sym: 'MIM',    name: 'Magic Internet $',  cgId: 'magic-internet-money', mech: 'cdp',   chains_hint: 7,
+    icon: 'https://coin-images.coingecko.com/coins/images/16786/small/mimlogopng.png',
+    exchanges: ['gate','kucoin'] },
+  { llamaId: '3',   sym: 'BUSD',   name: 'Binance USD',       cgId: 'binance-usd',          mech: 'fiat',  chains_hint: 3,
+    icon: 'https://coin-images.coingecko.com/coins/images/9576/small/BUSD.png',
+    exchanges: ['binance'] },
+  { llamaId: '15',  sym: 'UST',    name: 'TerraUSD (Classic)',cgId: 'terrausd',             mech: 'algo',  chains_hint: 2, depegged: true,
+    icon: 'https://coin-images.coingecko.com/coins/images/21150/small/UST.png',
+    exchanges: [] },
+  { llamaId: '23',  sym: 'EURS',   name: 'STASIS EURO',       cgId: 'stasis-eurs',          mech: 'fiat',  chains_hint: 2,
+    icon: 'https://coin-images.coingecko.com/coins/images/5164/small/EURS_300x300.png',
+    exchanges: ['kraken','bitfinex','gate'] },
+  { llamaId: '29',  sym: 'EURT',   name: 'Euro Tether',       cgId: 'tether-eurt',          mech: 'fiat',  chains_hint: 2,
+    icon: 'https://coin-images.coingecko.com/coins/images/17385/small/Tether_logo.png',
+    exchanges: ['kraken','bitfinex'] },
 ];
 
 let allCoins = [];
@@ -422,6 +479,46 @@ function mechBadge(mech) {
   return `<span class="mech ${mech}">${label}</span>`;
 }
 
+// Chain icon rendering
+const CHAIN_SLUG = {
+  'Ethereum':'ethereum','BSC':'bsc','Tron':'tron','Solana':'solana',
+  'Arbitrum':'arbitrum','Polygon':'polygon','Optimism':'optimism',
+  'Avalanche':'avalanche','Base':'base','Fantom':'fantom','Algorand':'algorand',
+  'Near':'near','Stellar':'stellar','Cosmos':'cosmos','Aptos':'aptos',
+  'Sui':'sui','Celo':'celo','Gnosis':'gnosis','Moonbeam':'moonbeam',
+  'zkSync Era':'zksync era','Linea':'linea','Scroll':'scroll',
+  'Manta':'manta','Mantle':'mantle','Blast':'blast','TON':'ton',
+  'Cardano':'cardano','Hedera':'hedera',
+};
+
+function chainIconsHtml(chains, max = 6) {
+  if (!chains || chains.length === 0) return '<span class="chain-more">—</span>';
+  const show = chains.slice(0, max);
+  const extra = chains.length - show.length;
+  const icons = show.map(ch => {
+    const slug = CHAIN_SLUG[ch] || ch.toLowerCase().replace(/\s+/g,'-');
+    const url = `https://icons.llamao.fi/icons/chains/rsz_${slug}.jpg`;
+    const initials = ch.slice(0,2).toUpperCase();
+    return `<span class="chain-ico" title="${ch}"><img src="${url}" alt="${ch}" onerror="this.parentNode.textContent='${initials}'"></span>`;
+  }).join('');
+  const more = extra > 0 ? `<span class="chain-more">+${extra}</span>` : '';
+  return `<div class="chain-icons">${icons}${more}</div>`;
+}
+
+// Exchange badge rendering
+const EX_LABELS = {
+  binance:'B', coinbase:'CB', kraken:'K', okx:'OKX',
+  bybit:'BY', bitfinex:'BFX', kucoin:'KC', bitget:'BG',
+  gate:'GT', upbit:'UB',
+};
+
+function exchangeBadgesHtml(exchanges) {
+  if (!exchanges || exchanges.length === 0) return '<span style="color:var(--text-3);font-size:11px">—</span>';
+  return `<div class="ex-badges">${exchanges.map(ex =>
+    `<span class="ex-badge ${ex}" title="${ex.charAt(0).toUpperCase()+ex.slice(1)}">${EX_LABELS[ex]||ex.toUpperCase().slice(0,3)}</span>`
+  ).join('')}</div>`;
+}
+
 function iconFallback(sym) {
   return sym.slice(0, 3).toUpperCase();
 }
@@ -509,7 +606,7 @@ function renderTable() {
   const tbody = document.getElementById('sc-tbody');
 
   if (page.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state">No stablecoins match your filter.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state">No stablecoins match your filter.</div></td></tr>`;
     document.getElementById('sc-pagination').innerHTML = '';
     return;
   }
@@ -547,7 +644,8 @@ function renderTable() {
       <td class="col-mcap"><span class="mcap">${formatUSD(c.mcap)}</span></td>
       <td class="col-vol"><span class="vol">${formatUSD(c.vol24h)}</span></td>
       <td class="col-chg"><span class="pct ${chgCls}">${c.vol24h > 0 ? chgSign + (c.change24h||0).toFixed(2) + '%' : '—'}</span></td>
-      <td class="col-chains"><span class="chain-count">${c.chainCount || '—'}</span></td>
+      <td class="col-chains">${chainIconsHtml(c.chains, 6)}</td>
+      <td class="col-exchanges">${exchangeBadgesHtml(c.exchanges)}</td>
       <td>${riskBadge(c._risk)}</td>
     </tr>`;
   }).join('');
@@ -623,7 +721,7 @@ async function fetchData() {
       change24h: cg.price_change_percentage_24h || 0,
       chains: llama.chains || [],
       chainCount: (llama.chains || []).length || hc.chains_hint || 0,
-      icon: cg.image || null,
+      icon: hc.icon || cg.image || null,
       pegType: llama.pegType || 'peggedUSD',
     };
   });
