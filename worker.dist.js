@@ -396,7 +396,8 @@ tbody tr:last-child td{border-bottom:none}
     Data from <a href="https://defillama.com" target="_blank">DeFi Llama</a> + <a href="https://coingecko.com" target="_blank">CoinGecko</a> · Risk scores based on peg deviation, mechanism, and market cap · Auto-refresh every 3 min<br>
     Part of <a href="https://shitcoin.io">Crypto Monitor</a> · Stablecoin peg health monitoring<br><br>
     <strong style="color:var(--amber)">⚠ Not financial advice.</strong> Stablecoin data is for informational purposes only. Stablecoins carry real risk of depegging.<br><br>
-    <a href="/terms">Terms of Use</a> &nbsp;·&nbsp; <a href="/privacy">Privacy Policy</a> &nbsp;·&nbsp; <a href="https://shitcoin.io">shitcoin.io</a>
+    <a href="/terms">Terms of Use</a> &nbsp;·&nbsp; <a href="/privacy">Privacy Policy</a> &nbsp;·&nbsp; <a href="https://shitcoin.io">shitcoin.io</a><br><br>
+    Maintained by <a href="https://mdt.io" target="_blank" rel="noopener">Measurable Data Token</a>
   </div>
 </div>
 
@@ -943,24 +944,31 @@ fetchData();
     window.gtag('config', GA_ID);
   }
 
+  function showBar() {
+    document.getElementById('cookie-bar').classList.remove('hidden');
+    document.body.style.paddingBottom = '70px';
+  }
+  function hideBar() {
+    document.getElementById('cookie-bar').classList.add('hidden');
+    document.body.style.paddingBottom = '';
+  }
+
   window.acceptCookies = function() {
     localStorage.setItem(KEY, 'granted');
-    document.getElementById('cookie-bar').classList.add('hidden');
+    hideBar();
     loadGA();
   };
 
   window.declineCookies = function() {
     localStorage.setItem(KEY, 'denied');
-    document.getElementById('cookie-bar').classList.add('hidden');
+    hideBar();
   };
 
   const stored = localStorage.getItem(KEY);
   if (stored === 'granted') {
     loadGA();
   } else if (!stored) {
-    setTimeout(function() {
-      document.getElementById('cookie-bar').classList.remove('hidden');
-    }, 2000);
+    setTimeout(showBar, 2000);
   }
 })();
 </script>
