@@ -215,19 +215,31 @@ tbody tr:last-child td{border-bottom:none}
 @media(max-width:640px){
   .tnav-name{display:none}
   .tnav-divider{display:none}
-  .tnav-tab{padding:6px 12px;font-size:12px;flex-shrink:0}
-  .topnav-inner{padding:0 12px;height:52px}
+  .tnav-tab{padding:6px 10px;font-size:12px;flex-shrink:0;gap:5px}
+  .topnav-inner{padding:0 10px;height:50px}
+  .tnav-right{margin-left:4px}
   .stats{grid-template-columns:repeat(2,1fr);gap:8px}
-  .stat{padding:16px 18px}
+  .stat{padding:14px 16px}
+  .stat-val{font-size:22px}
   .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px}
   .filters::-webkit-scrollbar{display:none}
-  .ftab{flex-shrink:0}
-  .search{min-width:160px}
+  .ftab{flex-shrink:0;padding:5px 12px;font-size:11px}
+  .search{min-width:140px;font-size:11px}
+  .hdr h1{font-size:18px}
   .cookie-bar{padding:12px 16px}
-  .cookie-bar-inner{flex-direction:column;align-items:flex-start;gap:12px}
+  .cookie-bar-inner{flex-direction:column;align-items:flex-start;gap:10px}
   .cookie-bar-actions{align-self:flex-end}
   .col-mcap,.col-vol,.col-chg,.col-chains,.col-exchanges{display:none}
-  table{min-width:520px}
+  table{min-width:360px}
+  td,th{padding:10px 10px}
+  .tk-ico{width:24px;height:24px}
+  .tk-ico img{width:24px;height:24px}
+  .tk-sym{font-size:12px}
+}
+@media(max-width:440px){
+  .tnav-tab{font-size:0;padding:7px 9px;gap:0}
+  .tnav-tab svg{display:block;width:16px;height:16px}
+  .topnav-inner{padding:0 8px}
 }
 @media(max-width:480px){.stats{grid-template-columns:1fr}}
 
