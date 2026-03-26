@@ -771,7 +771,27 @@ function exchangeBadgesHtml(exchanges, sym, cgId) {
 }
 
 function iconFallback(sym) {
-  return sym.slice(0, 3).toUpperCase();
+  return \`<span class="coin-letter-icon">\${sym.charAt(0)}</span>\`;
+}
+
+// CoinGecko ID → CMC slug differences
+const CG_TO_CMC = {
+  'dai':'multi-collateral-dai','nusd':'susd',
+  'avalanche-2':'avalanche','hedera-hashgraph':'hedera','near':'near-protocol',
+  'havven':'synthetix-network-token','binancecoin':'bnb',
+  'compound-governance-token':'compound','kyber-network-crystal':'kyber-network',
+  'melon':'enzyme','blockstack':'stacks','the-open-network':'toncoin',
+  'artificial-superintelligence-alliance':'fetch-ai',
+  'jito-governance-token':'jito','jupiter-exchange-solana':'jupiter-ag',
+  'injective-protocol':'injective','render-token':'render',
+  'sei-network':'sei','dogwifcoin':'dogwifhat','immutable-x':'immutable',
+  'crypto-com-chain':'cronos','elrond-erd-2':'multiversx',
+  'sushi':'sushiswap','pancakeswap-token':'pancakeswap','ripple':'xrp',
+  'threshold-network-token':'threshold','dydx-chain':'dydx','sonic-3':'sonic',
+};
+function getCmcSlug(cgId) {
+  if (!cgId) return null;
+  return CG_TO_CMC[cgId] || cgId;
 }
 
 // ---- Filter / Sort ----
@@ -871,9 +891,13 @@ function renderTable() {
     const price = c.price || 1.0;
     const pdCls = pegDeltaClass(price);
     const priceCls = priceClass(price);
+    const ghFb = \`https://cdn.jsdelivr.net/gh/ErikThiart/cryptocurrency-icons@master/32/\${c.sym.toLowerCase()}.png\`;
     const iconHtml = c.icon
-      ? \`<img src="\${c.icon}" alt="\${c.sym}" onerror="this.parentNode.innerHTML='\${iconFallback(c.sym)}'">\`
+      ? \`<img src="\${c.icon}" alt="\${c.sym}" data-fb="\${ghFb}" onerror="if(this.dataset.fb){var f=this.dataset.fb;this.dataset.fb='';this.src=f;return;}this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="coin-letter-icon" style="display:none">\${c.sym.charAt(0)}</span>\`
       : iconFallback(c.sym);
+    const cgUrl = c.cgId ? \`https://www.coingecko.com/en/coins/\${c.cgId}\` : null;
+    const cmcSlug = getCmcSlug(c.cgId);
+    const linksHtml = \`<div class="tk-links">\${cgUrl ? \`<a href="\${cgUrl}" target="_blank" title="CoinGecko"><img src="https://www.google.com/s2/favicons?domain=coingecko.com&sz=32" alt="CG"></a>\` : ''}\${cmcSlug ? \`<a href="https://coinmarketcap.com/currencies/\${cmcSlug}/" target="_blank" title="CoinMarketCap"><img src="https://www.google.com/s2/favicons?domain=coinmarketcap.com&sz=32" alt="CMC"></a>\` : ''}</div>\`;
     const chgCls = (c.change24h||0) >= 0 ? 'up' : 'dn';
     const chgSign = (c.change24h||0) >= 0 ? '+' : '';
 
@@ -886,6 +910,7 @@ function renderTable() {
             <div class="tk-sym">\${c.sym}</div>
             <div class="tk-name">\${c.name}</div>
             <div class="tk-chains">\${c.chainCount > 0 ? c.chainCount + ' chain' + (c.chainCount !== 1 ? 's' : '') : ''}</div>
+            \${linksHtml}
           </div>
         </div>
       </td>
@@ -1001,6 +1026,25 @@ async function fetchData() {
       pegType: lc.pegType,
     });
   });
+
+  // Fetch CoinGecko data for llama-discovered coins that have gecko_id but no icon
+  const discoveredIds = [...new Set(allCoins.filter(c => c.cgId && !c.icon).map(c => c.cgId))];
+  if (discoveredIds.length > 0) {
+    try {
+      const r2 = await fetch(\`/cg/coins/markets?vs_currency=usd&ids=\${discoveredIds.join(',')}&per_page=250\`);
+      const d2 = await r2.json().catch(() => []);
+      if (Array.isArray(d2)) d2.forEach(coin => {
+        allCoins.forEach(c => {
+          if (c.cgId === coin.id) {
+            if (!c.icon && coin.image) c.icon = coin.image;
+            if (!c.vol24h && coin.total_volume) c.vol24h = coin.total_volume;
+            if (!c.change24h && coin.price_change_percentage_24h) c.change24h = coin.price_change_percentage_24h;
+            if (!c.mcap && coin.market_cap) c.mcap = coin.market_cap;
+          }
+        });
+      });
+    } catch(e) { /* non-critical */ }
+  }
 
   // Sort by mcap desc
   allCoins.sort((a, b) => (b.mcap||0) - (a.mcap||0));
