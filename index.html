@@ -16,6 +16,10 @@
 <link rel="alternate icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://coin-images.coingecko.com" crossorigin>
+<link rel="preconnect" href="https://icons.llamao.fi" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="dns-prefetch" href="https://www.google.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -43,7 +47,8 @@
     --cyan: #06b6d4;
     --cyan-soft: rgba(6,182,212,0.12);
 }
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;font-family:inherit}
+html{font-family:'Inter',sans-serif}
 body{background:var(--bg-0);color:var(--text-1);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 body::after{content:'';position:fixed;top:0;left:0;width:100%;height:100%;opacity:0.025;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
 .wrap{position:relative;z-index:1;max-width:1700px;margin:0 auto;padding:28px 24px}
@@ -665,7 +670,7 @@ function chainIconsHtml(chains, sym, max = 6) {
     const imgUrl = `https://icons.llamao.fi/icons/chains/rsz_${slug}.jpg`;
     const link = chainContractUrl(sym, ch);
     const initials = ch.slice(0,2).toUpperCase();
-    return `<a class="chain-ico" href="${link}" target="_blank" rel="noopener" title="${sym} on ${ch}"><img src="${imgUrl}" alt="${ch}" onerror="this.textContent='${initials}'"></a>`;
+    return `<a class="chain-ico" href="${link}" target="_blank" rel="noopener" title="${sym} on ${ch}"><img src="${imgUrl}" alt="${ch}" loading="lazy" onerror="this.textContent='${initials}'"></a>`;
   }).join('');
   const more = extra > 0 ? `<span class="chain-more">+${extra}</span>` : '';
   return `<div class="chain-icons">${icons}${more}</div>`;
@@ -693,7 +698,7 @@ function exchangeBadgesHtml(exchanges, sym, cgId) {
     if (!m) return '';
     const href = m.url(slug);
     const favicon = `https://www.google.com/s2/favicons?domain=${m.domain}&sz=32`;
-    return `<a class="ex-icon-link" href="${href}" target="_blank" rel="noopener" title="${m.name}"><img src="${favicon}" alt="${m.name}" width="14" height="14"></a>`;
+    return `<a class="ex-icon-link" href="${href}" target="_blank" rel="noopener" title="${m.name}"><img src="${favicon}" alt="${m.name}" width="14" height="14" loading="lazy"></a>`;
   }).join('')}</div>`;
 }
 
@@ -820,11 +825,11 @@ function renderTable() {
     const priceCls = priceClass(price);
     const ghFb = `https://cdn.jsdelivr.net/gh/ErikThiart/cryptocurrency-icons@master/32/${c.sym.toLowerCase()}.png`;
     const iconHtml = c.icon
-      ? `<img src="${c.icon}" alt="${c.sym}" data-fb="${ghFb}" onerror="if(this.dataset.fb){var f=this.dataset.fb;this.dataset.fb='';this.src=f;return;}this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="coin-letter-icon" style="display:none">${c.sym.charAt(0)}</span>`
+      ? `<img src="${c.icon}" alt="${c.sym}" data-fb="${ghFb}" loading="lazy" onerror="if(this.dataset.fb){var f=this.dataset.fb;this.dataset.fb='';this.src=f;return;}this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="coin-letter-icon" style="display:none">${c.sym.charAt(0)}</span>`
       : iconFallback(c.sym);
     const cgUrl = c.cgId ? `https://www.coingecko.com/en/coins/${c.cgId}` : null;
     const cmcSlug = getCmcSlug(c.cgId);
-    const linksHtml = `<div class="tk-links">${cgUrl ? `<a href="${cgUrl}" target="_blank" title="CoinGecko"><img src="https://www.google.com/s2/favicons?domain=coingecko.com&sz=32" alt="CG"></a>` : ''}${cmcSlug ? `<a href="https://coinmarketcap.com/currencies/${cmcSlug}/" target="_blank" title="CoinMarketCap"><img src="https://www.google.com/s2/favicons?domain=coinmarketcap.com&sz=32" alt="CMC"></a>` : ''}</div>`;
+    const linksHtml = `<div class="tk-links">${cgUrl ? `<a href="${cgUrl}" target="_blank" title="CoinGecko"><img src="https://www.google.com/s2/favicons?domain=coingecko.com&sz=32" alt="CG" loading="lazy"></a>` : ''}${cmcSlug ? `<a href="https://coinmarketcap.com/currencies/${cmcSlug}/" target="_blank" title="CoinMarketCap"><img src="https://www.google.com/s2/favicons?domain=coinmarketcap.com&sz=32" alt="CMC" loading="lazy"></a>` : ''}</div>`;
     const chgCls = (c.change24h||0) >= 0 ? 'up' : 'dn';
     const chgSign = (c.change24h||0) >= 0 ? '+' : '';
 
