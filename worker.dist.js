@@ -137,7 +137,7 @@ body::after{content:'';position:fixed;top:0;left:0;width:100%;height:100%;opacit
 .tnav-scroll{flex:1;overflow-x:auto;scrollbar-width:none}
 .tnav-scroll::-webkit-scrollbar{display:none}
 .tnav-tabs{display:flex;align-items:center;gap:2px;flex-shrink:0;white-space:nowrap;padding:0 4px}
-.tnav-tab{display:inline-flex;align-items:center;gap:7px;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.18s;border:1px solid transparent;background:transparent;color:var(--text-3);font-family:'Inter',sans-serif;letter-spacing:-0.2px;text-decoration:none;flex-shrink:0;position:relative}
+.tnav-tab{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.18s;border:1px solid transparent;background:transparent;color:var(--text-3);font-family:'Inter',sans-serif;letter-spacing:-0.2px;text-decoration:none;flex-shrink:0;position:relative}
 .tnav-tab:hover{background:var(--bg-3);color:var(--text-2)}
 .tnav-tab.active{color:var(--text-1)}
 .tnav-tab.active.stablecoins{background:rgba(34,197,94,0.08);color:#22c55e;border-color:rgba(34,197,94,0.15)}
@@ -173,7 +173,7 @@ body::after{content:'';position:fixed;top:0;left:0;width:100%;height:100%;opacit
 
 /* FILTERS */
 .filters{display:flex;align-items:center;gap:6px;margin-bottom:16px;flex-wrap:wrap}
-.ftab{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;border:1px solid var(--border-1);background:transparent;color:var(--text-2);font-family:'Inter',sans-serif;white-space:nowrap;min-height:32px}
+.ftab{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;border:1px solid var(--border-1);background:transparent;color:var(--text-2);font-family:'Inter',sans-serif;white-space:nowrap;min-height:36px}
 .ftab:hover{background:var(--bg-3);border-color:var(--border-2);color:var(--text-1);transform:translateY(-1px)}
 .ftab.active{background:var(--text-1);color:var(--bg-0);border-color:var(--text-1);font-weight:600}
 .ftab .cnt{font-family:'IBM Plex Mono',monospace;font-size:10px;margin-left:4px;opacity:0.6}
@@ -205,15 +205,20 @@ tbody tr:last-child td{border-bottom:none}
 .tk-sym{font-weight:700;font-size:13px;letter-spacing:-0.2px;color:var(--text-1)}
 .tk-name{font-size:10px;color:var(--text-3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tk-chains{font-size:9px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.coin-letter-icon{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--bg-4),var(--bg-3));border:1px solid var(--border-2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text-2);font-family:'IBM Plex Mono',monospace;flex-shrink:0}
+.tk-links{display:flex;gap:3px;margin-top:2px;align-items:center}
+.tk-links a{display:flex;align-items:center;justify-content:center;width:20px;height:20px;opacity:0.45;transition:opacity 0.15s;border-radius:3px}
+.tk-links a:hover{opacity:1}
+.tk-links a img{width:14px;height:14px;border-radius:2px;display:block}
 .chain-icons{display:flex;gap:3px;align-items:center;flex-wrap:nowrap}
 .chain-ico{width:18px;height:18px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--bg-3);border:1px solid var(--border-1);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:var(--text-3);text-decoration:none;transition:transform 0.15s,border-color 0.15s}
 .chain-ico:hover{transform:scale(1.15);border-color:var(--border-2)}
 .chain-ico img{width:18px;height:18px;border-radius:50%;display:block}
 .chain-more{font-size:9px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;white-space:nowrap;margin-left:1px}
 .ex-badges{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
-.ex-icon-link{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;border:1px solid var(--border-1);background:var(--bg-3);transition:all 0.15s;text-decoration:none;overflow:hidden;flex-shrink:0}
+.ex-icon-link{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:5px;border:1px solid var(--border-1);background:var(--bg-3);transition:all 0.15s;text-decoration:none;overflow:hidden;flex-shrink:0}
 .ex-icon-link:hover{border-color:var(--border-2);transform:scale(1.1)}
-.ex-icon-link img{width:14px;height:14px;border-radius:2px;display:block}
+.ex-icon-link img{width:16px;height:16px;border-radius:2px;display:block}
 
 /* MECHANISM BADGES */
 .mech{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.04em}
