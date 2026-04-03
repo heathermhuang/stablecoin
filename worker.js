@@ -7,6 +7,14 @@
 const LLAMA_BASE = 'https://stablecoins.llama.fi';
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
 
+// Endpoint allowlists — prevents open-proxy abuse of third-party API quotas.
+const LLAMA_ALLOWED     = ['/stablecoins'];
+const COINGECKO_ALLOWED = ['/coins/markets'];
+
+function isAllowed(allowlist, subpath) {
+  return allowlist.some(p => subpath === p || subpath.startsWith(p + '?') || subpath.startsWith(p + '/'));
+}
+
 const TTL_MAP = [
   ['/stablecoins', 180],
   ['/cg/', 300],
@@ -124,17 +132,32 @@ export default {
     }
 
     if (path === '/' || path === '/index.html') {
-      return new Response(HTML, { headers: { 'Content-Type': 'text/html;charset=UTF-8', 'Cache-Control': 'public, max-age=60' } });
+      return new Response(HTML, { headers: {
+        'Content-Type': 'text/html;charset=UTF-8',
+        'Cache-Control': 'public, max-age=60',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'SAMEORIGIN',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+      }});
     }
 
-    // Proxy DeFi Llama stablecoins API
+    // Proxy DeFi Llama stablecoins API (allowlisted endpoints only)
     if (path.startsWith('/llama/')) {
+      const sub = path.slice(6).split('?')[0];
+      if (!isAllowed(LLAMA_ALLOWED, sub)) {
+        return new Response('{"error":"not allowed"}', { status: 403, headers: { 'Content-Type': 'application/json' } });
+      }
       const upstream = LLAMA_BASE + path.slice(6) + url.search;
       return cachedProxy(request, upstream, getTTL(path));
     }
 
-    // Proxy CoinGecko
+    // Proxy CoinGecko (allowlisted endpoints only)
     if (path.startsWith('/cg/')) {
+      const sub = path.slice(3).split('?')[0];
+      if (!isAllowed(COINGECKO_ALLOWED, sub)) {
+        return new Response('{"error":"not allowed"}', { status: 403, headers: { 'Content-Type': 'application/json' } });
+      }
       const upstream = COINGECKO_BASE + path.slice(3) + url.search;
       return cachedProxy(request, upstream, getTTL(path));
     }
