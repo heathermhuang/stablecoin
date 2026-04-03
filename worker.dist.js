@@ -76,24 +76,38 @@ const SC_TERMS_HTML = `<!DOCTYPE html><html lang="en"><head><title>Terms of Use 
 
 const SC_PRIVACY_HTML = `<!DOCTYPE html><html lang="en"><head><title>Privacy Policy · stablecoin.io</title>${SC_SHARED_CSS}</head><body><nav class="topnav"><div class="topnav-inner"><a class="tnav-brand" href="/"><div class="tnav-logo">$</div><span class="tnav-name">stablecoin.io</span></a><a class="tnav-back" href="/">&#8592; Back to Monitor</a></div></nav><div class="legal-wrap"><h1>Privacy Policy</h1><div class="updated">Last updated: March 2026</div><p>stablecoin.io is committed to your privacy. This policy explains what data we collect, how we use it, and your rights.</p><h2>1. Data We Collect</h2><p><strong>Analytics (with consent only):</strong> If you accept cookies, Google Analytics collects anonymized data including pages visited, session duration, general geographic region, browser type, and device type. No personally identifiable information is collected.</p><p><strong>Local storage:</strong> We store your cookie consent preference and UI state (sort order, active filter) in your browser's localStorage. This data never leaves your device.</p><p><strong>No accounts:</strong> We do not require registration. We do not collect names, emails, or payment information.</p><h2>2. Cookies</h2><p>Cookies are only used with your consent. If accepted, Google Analytics sets:</p><ul><li><strong>_ga</strong> &mdash; Distinguishes users (2 year expiry)</li><li><strong>_ga_*</strong> &mdash; Session state (2 year expiry)</li></ul><p>Withdraw consent anytime by clearing browser cookies and localStorage.</p><h2>3. How We Use Data</h2><p>Analytics data is used solely to understand aggregate traffic patterns. We do not sell, share, or use data for advertising.</p><h2>4. Third-Party Services</h2><ul><li><strong>DeFi Llama</strong> (stablecoins.llama.fi) &mdash; Stablecoin data</li><li><strong>CoinGecko</strong> (api.coingecko.com) &mdash; Price and market cap data</li><li><strong>Google Analytics</strong> (googletagmanager.com) &mdash; Analytics, consent-gated</li><li><strong>Google Fonts</strong> (fonts.googleapis.com) &mdash; Typography</li><li><strong>DeFi Llama Icons</strong> (icons.llamao.fi) &mdash; Chain logos</li><li><strong>CoinGecko Images</strong> (coin-images.coingecko.com) &mdash; Coin icons</li></ul><p>API calls to DeFi Llama and CoinGecko are proxied through our Cloudflare Worker.</p><h2>5. Data Retention</h2><p>Google Analytics data is retained for 14 months. Local storage data remains until cleared. We have no server-side database.</p><h2>6. Your Rights (GDPR)</h2><p>EEA residents have the right to: access data we hold, request deletion, withdraw consent, and lodge a complaint with their local DPA.</p><h2>7. Children</h2><p>This service is not intended for users under 18.</p><h2>8. Changes</h2><p>We may update this policy. Continued use after changes constitutes acceptance.</p><h2>9. Contact</h2><p>For privacy questions, use the site footer links. We aim to respond within 30 days. stablecoin.io is part of the <a href="https://shitcoin.io">Crypto Monitor</a> network.</p></div><div class="footer"><a href="/">stablecoin.io</a> &nbsp;&middot;&nbsp; <a href="/terms">Terms</a> &nbsp;&middot;&nbsp; <a href="/privacy">Privacy</a> &nbsp;&middot;&nbsp; <a href="https://shitcoin.io">shitcoin.io</a></div></body></html>`;
 
+const SC_OG_IMAGE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><rect width="1200" height="630" fill="#020408"/><defs><linearGradient id="grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a1a0e"/><stop offset="100%" stop-color="#020408"/></linearGradient></defs><rect width="1200" height="630" fill="url(#grad)"/><rect x="60" y="60" width="1080" height="510" rx="16" fill="#080c14" stroke="#1a2540" stroke-width="1.5"/><circle cx="110" cy="135" r="20" fill="none" stroke="#22c55e" stroke-width="2.5"/><text x="110" y="141" text-anchor="middle" font-family="monospace" font-weight="900" font-size="18" fill="#22c55e">$</text><text x="145" y="147" font-family="monospace" font-weight="800" font-size="26" fill="#22c55e">stablecoin.io</text><text x="90" y="230" font-family="monospace" font-weight="700" font-size="52" fill="#e4e6ef">Stablecoin</text><text x="90" y="295" font-family="monospace" font-weight="700" font-size="52" fill="#e4e6ef">Monitor</text><text x="90" y="365" font-family="sans-serif" font-size="26" fill="#5d6178">Peg health &amp; risk scores for 50+ stablecoins</text><rect x="90" y="415" width="160" height="44" rx="8" fill="rgba(34,197,94,0.12)" stroke="rgba(34,197,94,0.3)" stroke-width="1"/><text x="170" y="443" font-family="monospace" font-size="15" fill="#22c55e" text-anchor="middle">PEG HEALTH</text><rect x="270" y="415" width="160" height="44" rx="8" fill="rgba(234,179,8,0.12)" stroke="rgba(234,179,8,0.3)" stroke-width="1"/><text x="350" y="443" font-family="monospace" font-size="15" fill="#eab308" text-anchor="middle">RISK SCORES</text><rect x="450" y="415" width="160" height="44" rx="8" fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.3)" stroke-width="1"/><text x="530" y="443" font-family="monospace" font-size="15" fill="#3b82f6" text-anchor="middle">MARKET CAPS</text></svg>`;
+
 const HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stablecoin Monitor · Peg Health &amp; Risk Scores</title>
-<meta name="description" content="Real-time stablecoin health monitoring — peg deviation, risk scores, market caps, and mechanism analysis for USDT, USDC, DAI, and 50+ stablecoins.">
-<meta property="og:title" content="Stablecoin Monitor · stablecoin.io">
-<meta property="og:description" content="Real-time peg health, risk scores, and market data for USDT, USDC, DAI, and 50+ stablecoins.">
-<meta property="og:url" content="https://stablecoin.io">
+<title>Stablecoin Monitor — Peg Health &amp; Risk Scores for USDT, USDC, DAI | stablecoin.io</title>
+<meta name="description" content="Real-time stablecoin health monitoring — peg deviation, risk scores, market caps, and mechanism analysis for USDT, USDC, DAI, and 50+ stablecoins across all chains.">
+<link rel="canonical" href="https://stablecoin.io/">
+<meta property="og:title" content="Stablecoin Monitor — Peg Health &amp; Risk Scores">
+<meta property="og:description" content="Track peg deviation, risk scores, and market data for USDT, USDC, DAI, and 50+ stablecoins. Real-time data across all major chains.">
+<meta property="og:url" content="https://stablecoin.io/">
 <meta property="og:type" content="website">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Stablecoin Monitor · stablecoin.io">
-<meta name="twitter:description" content="Real-time peg health and risk scores for 50+ stablecoins.">
+<meta property="og:site_name" content="stablecoin.io">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://stablecoin.io/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@stablecoinio">
+<meta name="twitter:title" content="Stablecoin Monitor — Peg Health &amp; Risk Scores">
+<meta name="twitter:description" content="Real-time peg health, risk scores, and market data for USDT, USDC, DAI, and 50+ stablecoins.">
+<meta name="twitter:image" content="https://stablecoin.io/og-image.png">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="alternate icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://coin-images.coingecko.com" crossorigin>
+<link rel="preconnect" href="https://icons.llamao.fi" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="dns-prefetch" href="https://www.google.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -121,7 +135,8 @@ const HTML = `<!DOCTYPE html>
     --cyan: #06b6d4;
     --cyan-soft: rgba(6,182,212,0.12);
 }
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;font-family:inherit}
+html{font-family:'Inter',sans-serif}
 body{background:var(--bg-0);color:var(--text-1);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 body::after{content:'';position:fixed;top:0;left:0;width:100%;height:100%;opacity:0.025;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
 .wrap{position:relative;z-index:1;max-width:1700px;margin:0 auto;padding:28px 24px}
@@ -333,6 +348,69 @@ tbody tr:last-child td{border-bottom:none}
 
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg-1)}::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://stablecoin.io/#app",
+      "name": "stablecoin.io — Stablecoin Monitor",
+      "url": "https://stablecoin.io/",
+      "description": "Real-time stablecoin health monitoring dashboard tracking peg deviation, risk scores, market cap, backing mechanisms, and chain distribution for USDT, USDC, DAI, and 50+ stablecoins.",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Real-time peg deviation tracking",
+        "Stablecoin risk scores",
+        "Market cap and supply data",
+        "Backing mechanism analysis (fiat, crypto, algorithmic)",
+        "Multi-chain distribution",
+        "Depeg alerts and historical data"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://stablecoin.io/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is stablecoin.io?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "stablecoin.io is a free real-time monitoring dashboard for stablecoins. It tracks peg deviation, risk scores, market cap, backing mechanisms, and chain distribution for USDT, USDC, DAI, and 50+ stablecoins."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is peg deviation calculated?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Peg deviation is the percentage difference between a stablecoin's current market price and its target peg (typically $1.00 USD). Data is sourced from DeFi Llama and CoinGecko."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What stablecoins are tracked?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "stablecoin.io tracks 50+ stablecoins including USDT (Tether), USDC (Circle), DAI (MakerDAO), FRAX, LUSD, sUSD, TUSD, BUSD, PYUSD, and many more across all major blockchains."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which blockchains are covered?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "stablecoin.io covers stablecoin supply and distribution across Ethereum, Tron, BSC (BNB Chain), Solana, Arbitrum, Optimism, Polygon, Avalanche, and other major chains."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -743,7 +821,7 @@ function chainIconsHtml(chains, sym, max = 6) {
     const imgUrl = \`https://icons.llamao.fi/icons/chains/rsz_\${slug}.jpg\`;
     const link = chainContractUrl(sym, ch);
     const initials = ch.slice(0,2).toUpperCase();
-    return \`<a class="chain-ico" href="\${link}" target="_blank" rel="noopener" title="\${sym} on \${ch}"><img src="\${imgUrl}" alt="\${ch}" onerror="this.textContent='\${initials}'"></a>\`;
+    return \`<a class="chain-ico" href="\${link}" target="_blank" rel="noopener" title="\${sym} on \${ch}"><img src="\${imgUrl}" alt="\${ch}" loading="lazy" onerror="this.textContent='\${initials}'"></a>\`;
   }).join('');
   const more = extra > 0 ? \`<span class="chain-more">+\${extra}</span>\` : '';
   return \`<div class="chain-icons">\${icons}\${more}</div>\`;
@@ -771,7 +849,7 @@ function exchangeBadgesHtml(exchanges, sym, cgId) {
     if (!m) return '';
     const href = m.url(slug);
     const favicon = \`https://www.google.com/s2/favicons?domain=\${m.domain}&sz=32\`;
-    return \`<a class="ex-icon-link" href="\${href}" target="_blank" rel="noopener" title="\${m.name}"><img src="\${favicon}" alt="\${m.name}" width="14" height="14"></a>\`;
+    return \`<a class="ex-icon-link" href="\${href}" target="_blank" rel="noopener" title="\${m.name}"><img src="\${favicon}" alt="\${m.name}" width="14" height="14" loading="lazy"></a>\`;
   }).join('')}</div>\`;
 }
 
@@ -898,11 +976,11 @@ function renderTable() {
     const priceCls = priceClass(price);
     const ghFb = \`https://cdn.jsdelivr.net/gh/ErikThiart/cryptocurrency-icons@master/32/\${c.sym.toLowerCase()}.png\`;
     const iconHtml = c.icon
-      ? \`<img src="\${c.icon}" alt="\${c.sym}" data-fb="\${ghFb}" onerror="if(this.dataset.fb){var f=this.dataset.fb;this.dataset.fb='';this.src=f;return;}this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="coin-letter-icon" style="display:none">\${c.sym.charAt(0)}</span>\`
+      ? \`<img src="\${c.icon}" alt="\${c.sym}" data-fb="\${ghFb}" loading="lazy" onerror="if(this.dataset.fb){var f=this.dataset.fb;this.dataset.fb='';this.src=f;return;}this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="coin-letter-icon" style="display:none">\${c.sym.charAt(0)}</span>\`
       : iconFallback(c.sym);
     const cgUrl = c.cgId ? \`https://www.coingecko.com/en/coins/\${c.cgId}\` : null;
     const cmcSlug = getCmcSlug(c.cgId);
-    const linksHtml = \`<div class="tk-links">\${cgUrl ? \`<a href="\${cgUrl}" target="_blank" title="CoinGecko"><img src="https://www.google.com/s2/favicons?domain=coingecko.com&sz=32" alt="CG"></a>\` : ''}\${cmcSlug ? \`<a href="https://coinmarketcap.com/currencies/\${cmcSlug}/" target="_blank" title="CoinMarketCap"><img src="https://www.google.com/s2/favicons?domain=coinmarketcap.com&sz=32" alt="CMC"></a>\` : ''}</div>\`;
+    const linksHtml = \`<div class="tk-links">\${cgUrl ? \`<a href="\${cgUrl}" target="_blank" title="CoinGecko"><img src="https://www.google.com/s2/favicons?domain=coingecko.com&sz=32" alt="CG" loading="lazy"></a>\` : ''}\${cmcSlug ? \`<a href="https://coinmarketcap.com/currencies/\${cmcSlug}/" target="_blank" title="CoinMarketCap"><img src="https://www.google.com/s2/favicons?domain=coinmarketcap.com&sz=32" alt="CMC" loading="lazy"></a>\` : ''}</div>\`;
     const chgCls = (c.change24h||0) >= 0 ? 'up' : 'dn';
     const chgSign = (c.change24h||0) >= 0 ? '+' : '';
 
@@ -1197,6 +1275,27 @@ export default {
     // Favicon
     if (path === '/favicon.svg' || path === '/favicon.ico') {
       return new Response(SC_FAVICON_SVG, { headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400' } });
+    }
+
+    // SEO: robots.txt
+    if (path === '/robots.txt') {
+      return new Response(
+        'User-agent: *\nAllow: /\nDisallow: /llama/\nDisallow: /cg/\nSitemap: https://stablecoin.io/sitemap.xml\n',
+        { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=86400' } }
+      );
+    }
+
+    // SEO: sitemap.xml
+    if (path === '/sitemap.xml') {
+      return new Response(
+        `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://stablecoin.io/</loc><changefreq>hourly</changefreq><priority>1.0</priority></url><url><loc>https://stablecoin.io/terms</loc><changefreq>monthly</changefreq><priority>0.2</priority></url><url><loc>https://stablecoin.io/privacy</loc><changefreq>monthly</changefreq><priority>0.2</priority></url></urlset>`,
+        { headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=86400' } }
+      );
+    }
+
+    // SEO: OG image
+    if (path === '/og-image.png' || path === '/og-image.svg') {
+      return new Response(SC_OG_IMAGE_SVG, { headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400' } });
     }
 
     // Legal pages
