@@ -4,6 +4,8 @@
  * Uses Cloudflare Cache API for stale-while-revalidate.
  */
 
+import { connect } from "cloudflare:sockets";
+
 const LLAMA_BASE = 'https://stablecoins.llama.fi';
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
 
@@ -25,17 +27,110 @@ function getTTL(path) {
   return 180;
 }
 
-async function cachedProxy(request, upstream, ttl) {
+// ---- Outbound HTTP proxy (CONNECT tunnel) for upstreams that block Cloudflare's
+// datacenter IPs (CoinGecko). Workers' fetch() can't use an HTTP proxy, so we open
+// a raw TCP socket to the proxy, issue CONNECT, upgrade to TLS, and speak HTTP/1.1
+// by hand. Credentials come from env.PROXY_URL (a secret). Ported from shitcoin.io.
+function parseProxy(proxyUrl) {
+  if (!proxyUrl) return null;
+  try {
+    const u = new URL(proxyUrl);
+    if (!u.hostname || !u.port) return null;
+    return {
+      host: u.hostname,
+      port: parseInt(u.port, 10),
+      auth: 'Basic ' + btoa(decodeURIComponent(u.username) + ':' + decodeURIComponent(u.password)),
+    };
+  } catch { return null; }
+}
+function _concat(a, b) { const o = new Uint8Array(a.length + b.length); o.set(a); o.set(b, a.length); return o; }
+function _findCRLF2(b) { for (let i = 0; i + 3 < b.length; i++) if (b[i]===13&&b[i+1]===10&&b[i+2]===13&&b[i+3]===10) return i; return -1; }
+function _dechunk(buf) {
+  const parts = []; let pos = 0; const td = new TextDecoder();
+  while (pos < buf.length) {
+    let nl = -1; for (let i = pos; i + 1 < buf.length; i++) if (buf[i]===13&&buf[i+1]===10) { nl = i; break; }
+    if (nl === -1) break;
+    const size = parseInt(td.decode(buf.subarray(pos, nl)).trim().split(';')[0], 16);
+    if (isNaN(size) || size === 0) break;
+    const start = nl + 2;
+    parts.push(buf.subarray(start, start + size));
+    pos = start + size + 2;
+  }
+  let total = 0; for (const p of parts) total += p.length;
+  const out = new Uint8Array(total); let o = 0; for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+}
+// Fetch an HTTPS URL through the CONNECT proxy. Returns a Response.
+async function proxyFetch(targetUrl, proxy, headers = {}) {
+  const u = new URL(targetUrl);
+  const host = u.hostname;
+  const port = u.port ? parseInt(u.port, 10) : 443;
+  const enc = new TextEncoder();
+  const socket = connect({ hostname: proxy.host, port: proxy.port }, { secureTransport: 'starttls', allowHalfOpen: false });
+
+  // 1) CONNECT host:443 through the proxy
+  let w = socket.writable.getWriter();
+  await w.write(enc.encode(`CONNECT ${host}:${port} HTTP/1.1\r\nHost: ${host}:${port}\r\nProxy-Authorization: ${proxy.auth}\r\n\r\n`));
+  w.releaseLock();
+  let r = socket.readable.getReader();
+  let acc = new Uint8Array(0);
+  while (true) {
+    const { value, done } = await r.read();
+    if (done) throw new Error('proxy closed before CONNECT reply');
+    acc = _concat(acc, value);
+    if (_findCRLF2(acc) !== -1) break;
+  }
+  const connLine = new TextDecoder().decode(acc.subarray(0, acc.indexOf(13)));
+  if (!connLine.includes(' 200')) throw new Error('CONNECT failed: ' + connLine);
+  r.releaseLock();
+
+  // 2) TLS over the tunnel (SNI = target host), then a plain HTTP/1.1 GET
+  const tls = socket.startTls({ expectedServerHostname: host });
+  w = tls.writable.getWriter();
+  let req = `GET ${u.pathname + u.search} HTTP/1.1\r\nHost: ${host}\r\n` +
+            `User-Agent: ${headers['User-Agent'] || 'StablecoinMonitor/1.0'}\r\nAccept: application/json\r\nAccept-Encoding: identity\r\n`;
+  for (const [k, v] of Object.entries(headers)) { if (k.toLowerCase() === 'user-agent') continue; req += `${k}: ${v}\r\n`; }
+  req += 'Connection: close\r\n\r\n';
+  await w.write(enc.encode(req));
+  w.releaseLock();
+
+  // 3) read the whole response (Connection: close → read to EOF)
+  r = tls.readable.getReader();
+  let resp = new Uint8Array(0);
+  while (true) { const { value, done } = await r.read(); if (done) break; resp = _concat(resp, value); }
+
+  const hb = _findCRLF2(resp);
+  if (hb === -1) throw new Error('no header boundary from proxied upstream');
+  const head = new TextDecoder().decode(resp.subarray(0, hb)).split('\r\n');
+  const status = parseInt((head[0].split(' ')[1]) || '502', 10);
+  const h = {};
+  for (let i = 1; i < head.length; i++) { const c = head[i].indexOf(':'); if (c > 0) h[head[i].slice(0, c).trim().toLowerCase()] = head[i].slice(c + 1).trim(); }
+  let body = resp.subarray(hb + 4);
+  if ((h['transfer-encoding'] || '').toLowerCase().includes('chunked')) body = _dechunk(body);
+  return new Response(body, { status, headers: { 'Content-Type': h['content-type'] || 'application/json' } });
+}
+
+async function cachedProxy(request, upstream, ttl, apiKey, proxy) {
   const cache = caches.default;
   const isCG = upstream.includes('coingecko.com');
   const storageTtl = isCG ? 86400 : ttl * 10;
+  // Authenticate CoinGecko with a Demo API key when configured — its own 30 req/min
+  // quota instead of the throttled anonymous pool. Sent only upstream, never cached.
+  const upstreamHeaders = { 'User-Agent': 'StablecoinMonitor/1.0' };
+  if (isCG && apiKey) upstreamHeaders['x-cg-demo-api-key'] = apiKey;
+  // CoinGecko blocks Cloudflare's datacenter IPs → route it through the CONNECT proxy
+  // when one is configured. DeFi Llama isn't blocked, so it always uses normal fetch().
+  const useProxy = proxy && upstream.includes('coingecko.com');
+  const doFetch = () => useProxy
+    ? proxyFetch(upstream, proxy, upstreamHeaders)
+    : fetch(upstream, { headers: upstreamHeaders, cf: { cacheTtl: ttl, cacheEverything: true } });
   const cacheKey = new Request(upstream, { headers: { 'Cache-Control': 'no-transform' } });
 
   const cached = await cache.match(cacheKey);
   if (cached) {
     const age = Date.now()/1000 - new Date(cached.headers.get('X-Cached-At') || 0).getTime()/1000;
     if (age > ttl) {
-      fetch(upstream, { headers: { 'User-Agent': 'StablecoinMonitor/1.0' } })
+      doFetch()
         .then(r => r.ok ? r.blob().then(b => {
           const fresh = new Response(b, { headers: {
             'Content-Type': r.headers.get('Content-Type') || 'application/json',
@@ -92,6 +187,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
+    const proxy = parseProxy(env.PROXY_URL);
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET' } });
@@ -149,7 +245,7 @@ export default {
         return new Response('{"error":"not allowed"}', { status: 403, headers: { 'Content-Type': 'application/json' } });
       }
       const upstream = LLAMA_BASE + path.slice(6) + url.search;
-      return cachedProxy(request, upstream, getTTL(path));
+      return cachedProxy(request, upstream, getTTL(path), undefined, proxy);
     }
 
     // Proxy CoinGecko (allowlisted endpoints only)
@@ -159,7 +255,7 @@ export default {
         return new Response('{"error":"not allowed"}', { status: 403, headers: { 'Content-Type': 'application/json' } });
       }
       const upstream = COINGECKO_BASE + path.slice(3) + url.search;
-      return cachedProxy(request, upstream, getTTL(path));
+      return cachedProxy(request, upstream, getTTL(path), env.CG_DEMO_KEY, proxy);
     }
 
     return new Response('Not Found', { status: 404 });
