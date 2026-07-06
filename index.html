@@ -398,7 +398,7 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
   <!-- STAT CARDS -->
   <div class="stats" id="sc-stats">
     <div class="stat b"><div class="stat-label">Total Market Cap</div><div class="stat-val b">—</div><div class="stat-sub">all tracked stablecoins</div></div>
-    <div class="stat g"><div class="stat-label">At Peg</div><div class="stat-val g">—</div><div class="stat-sub">within 0.5% of $1.00</div></div>
+    <div class="stat g"><div class="stat-label">At Peg</div><div class="stat-val g">—</div><div class="stat-sub">within 0.5% of peg</div></div>
     <div class="stat a"><div class="stat-label">At Risk</div><div class="stat-val a">—</div><div class="stat-sub">0.5% – 2% deviation</div></div>
     <div class="stat r"><div class="stat-label">Depegged</div><div class="stat-val r">—</div><div class="stat-sub">over 2% deviation</div></div>
     <div class="stat p"><div class="stat-label">Largest</div><div class="stat-val p">—</div><div class="stat-sub">by market cap</div></div>
@@ -451,6 +451,11 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
 </div>
 
 <script>
+// llamaId = DeFi Llama /stablecoins asset id — verify against the live API when
+// editing (https://stablecoins.llama.fi/stablecoins). The merge discards a llama
+// match whose symbol differs from `sym`, so a wrong id degrades to the CoinGecko
+// fallback instead of rendering another coin's data. `icon: null` = backfilled
+// from CoinGecko at runtime. `pegType` only needs stating for non-USD pegs.
 const HARDCODED = [
   { llamaId: '1',   sym: 'USDT',   name: 'Tether',            cgId: 'tether',               mech: 'fiat',  chains_hint: 20,
     icon: 'https://coin-images.coingecko.com/coins/images/325/small/Tether.png',
@@ -458,60 +463,73 @@ const HARDCODED = [
   { llamaId: '2',   sym: 'USDC',   name: 'USD Coin',          cgId: 'usd-coin',             mech: 'fiat',  chains_hint: 15,
     icon: 'https://coin-images.coingecko.com/coins/images/6319/small/usdc.png',
     exchanges: ['binance','coinbase','kraken','okx','bybit','kucoin','bitget'] },
-  { llamaId: '4',   sym: 'DAI',    name: 'Dai',               cgId: 'dai',                  mech: 'cdp',   chains_hint: 12,
+  { llamaId: '209', sym: 'USDS',   name: 'Sky Dollar',        cgId: 'usds',                 mech: 'cdp',   chains_hint: 7,
+    icon: null,
+    exchanges: ['binance','coinbase','kraken','okx','bybit','gate','bitget'] },
+  { llamaId: '5',   sym: 'DAI',    name: 'Dai',               cgId: 'dai',                  mech: 'cdp',   chains_hint: 12,
     icon: 'https://coin-images.coingecko.com/coins/images/9956/small/Badge_Dai.png',
     exchanges: ['coinbase','kraken','binance','okx','kucoin','gate'] },
-  { llamaId: '149', sym: 'USDE',   name: 'USDe',              cgId: 'ethena-usde',          mech: 'cdp',   chains_hint: 5,
+  { llamaId: '262', sym: 'USD1',   name: 'World Liberty Financial USD', cgId: 'usd1-wlfi',  mech: 'fiat',  chains_hint: 8,
+    icon: null,
+    exchanges: ['binance','coinbase','kraken','okx','bybit','kucoin','gate','bitget'] },
+  { llamaId: '146', sym: 'USDE',   name: 'USDe',              cgId: 'ethena-usde',          mech: 'cdp',   chains_hint: 5,
     icon: 'https://coin-images.coingecko.com/coins/images/33613/small/USDE.png',
     exchanges: ['binance','okx','bybit','kucoin','bitget'] },
-  { llamaId: '161', sym: 'FDUSD',  name: 'First Digital USD', cgId: 'first-digital-usd',    mech: 'fiat',  chains_hint: 3,
-    icon: 'https://coin-images.coingecko.com/coins/images/31079/small/firstfigital.png',
-    exchanges: ['binance'] },
-  { llamaId: '5',   sym: 'FRAX',   name: 'Frax',              cgId: 'frax',                 mech: 'algo',  chains_hint: 12,
-    icon: 'https://coin-images.coingecko.com/coins/images/13422/small/FRAX_icon.png',
-    exchanges: ['okx','gate','kucoin'] },
-  { llamaId: '6',   sym: 'TUSD',   name: 'TrueUSD',           cgId: 'true-usd',             mech: 'fiat',  chains_hint: 5,
-    icon: 'https://coin-images.coingecko.com/coins/images/3449/small/tusd.png',
-    exchanges: ['binance','okx','kucoin','gate'] },
-  { llamaId: '146', sym: 'PYUSD',  name: 'PayPal USD',        cgId: 'paypal-usd',           mech: 'fiat',  chains_hint: 2,
+  { llamaId: '286', sym: 'USDG',   name: 'Global Dollar',     cgId: 'global-dollar',        mech: 'fiat',  chains_hint: 5,
+    icon: null,
+    exchanges: ['kraken','okx','kucoin','gate'] },
+  { llamaId: '120', sym: 'PYUSD',  name: 'PayPal USD',        cgId: 'paypal-usd',           mech: 'fiat',  chains_hint: 2,
     icon: 'https://coin-images.coingecko.com/coins/images/31212/small/PYUSD.png',
     exchanges: ['coinbase','kraken'] },
-  { llamaId: '8',   sym: 'USDD',   name: 'USDD',              cgId: 'usdd',                 mech: 'algo',  chains_hint: 4,
+  { llamaId: '250', sym: 'RLUSD',  name: 'Ripple USD',        cgId: 'ripple-usd',           mech: 'fiat',  chains_hint: 2,
+    icon: null,
+    exchanges: ['binance','kraken','okx','bybit','gate','bitget'] },
+  { llamaId: '14',  sym: 'USDD',   name: 'USDD',              cgId: 'usdd',                 mech: 'algo',  chains_hint: 4,
     icon: 'https://coin-images.coingecko.com/coins/images/25380/small/USDD.png',
     exchanges: ['bybit','okx','kucoin','gate','bitget'] },
-  { llamaId: '7',   sym: 'USDP',   name: 'Pax Dollar',        cgId: 'paxos-standard',       mech: 'fiat',  chains_hint: 2,
-    icon: 'https://coin-images.coingecko.com/coins/images/6013/small/Pax_Dollar.png',
-    exchanges: ['kraken','bitfinex'] },
-  { llamaId: '9',   sym: 'GUSD',   name: 'Gemini Dollar',     cgId: 'gemini-dollar',        mech: 'fiat',  chains_hint: 2,
-    icon: 'https://coin-images.coingecko.com/coins/images/5992/small/gemini-dollar-gusd.png',
-    exchanges: ['kraken','bitfinex'] },
-  { llamaId: '11',  sym: 'LUSD',   name: 'Liquity USD',       cgId: 'liquity-usd',          mech: 'cdp',   chains_hint: 3,
-    icon: 'https://coin-images.coingecko.com/coins/images/14666/small/Group_3.png',
-    exchanges: ['kraken','kucoin','gate'] },
-  { llamaId: '133', sym: 'GHO',    name: 'GHO',               cgId: 'gho',                  mech: 'cdp',   chains_hint: 2,
+  { llamaId: '119', sym: 'FDUSD',  name: 'First Digital USD', cgId: 'first-digital-usd',    mech: 'fiat',  chains_hint: 3,
+    icon: 'https://coin-images.coingecko.com/coins/images/31079/small/firstfigital.png',
+    exchanges: ['binance'] },
+  { llamaId: '7',   sym: 'TUSD',   name: 'TrueUSD',           cgId: 'true-usd',             mech: 'fiat',  chains_hint: 5,
+    icon: 'https://coin-images.coingecko.com/coins/images/3449/small/tusd.png',
+    exchanges: ['binance','okx','kucoin','gate'] },
+  { llamaId: '118', sym: 'GHO',    name: 'GHO',               cgId: 'gho',                  mech: 'cdp',   chains_hint: 2,
     icon: 'https://coin-images.coingecko.com/coins/images/30663/small/gho-token-logo.png',
     exchanges: ['kraken','okx'] },
-  { llamaId: '132', sym: 'crvUSD', name: 'Curve USD',         cgId: 'crvusd',               mech: 'cdp',   chains_hint: 1,
+  { llamaId: '50',  sym: 'EURC',   name: 'Circle EURC',       cgId: 'euro-coin',            mech: 'fiat',  chains_hint: 10, pegType: 'peggedEUR',
+    icon: null,
+    exchanges: ['coinbase'] },
+  { llamaId: '110', sym: 'crvUSD', name: 'Curve USD',         cgId: 'crvusd',               mech: 'cdp',   chains_hint: 1,
     icon: 'https://coin-images.coingecko.com/coins/images/30118/small/crvusd.png',
     exchanges: ['okx','gate'] },
-  { llamaId: '10',  sym: 'sUSD',   name: 'Synthetix USD',     cgId: 'nusd',                 mech: 'cdp',   chains_hint: 2,
+  { llamaId: '6',   sym: 'FRAX',   name: 'Frax',              cgId: 'frax',                 mech: 'algo',  chains_hint: 12,
+    icon: 'https://coin-images.coingecko.com/coins/images/13422/small/FRAX_icon.png',
+    exchanges: ['okx','gate','kucoin'] },
+  { llamaId: '11',  sym: 'USDP',   name: 'Pax Dollar',        cgId: 'paxos-standard',       mech: 'fiat',  chains_hint: 2,
+    icon: 'https://coin-images.coingecko.com/coins/images/6013/small/Pax_Dollar.png',
+    exchanges: ['kraken','bitfinex'] },
+  { llamaId: '19',  sym: 'GUSD',   name: 'Gemini Dollar',     cgId: 'gemini-dollar',        mech: 'fiat',  chains_hint: 2,
+    icon: 'https://coin-images.coingecko.com/coins/images/5992/small/gemini-dollar-gusd.png',
+    exchanges: ['kraken','bitfinex'] },
+  { llamaId: '8',   sym: 'LUSD',   name: 'Liquity USD',       cgId: 'liquity-usd',          mech: 'cdp',   chains_hint: 3,
+    icon: 'https://coin-images.coingecko.com/coins/images/14666/small/Group_3.png',
+    exchanges: ['kraken','kucoin','gate'] },
+  { llamaId: '22',  sym: 'sUSD',   name: 'Synthetix USD',     cgId: 'nusd',                 mech: 'cdp',   chains_hint: 2,
     icon: 'https://coin-images.coingecko.com/coins/images/5013/small/sUSD.png',
     exchanges: ['kraken','kucoin'] },
-  { llamaId: '12',  sym: 'MIM',    name: 'Magic Internet $',  cgId: 'magic-internet-money', mech: 'cdp',   chains_hint: 7,
+  { llamaId: '10',  sym: 'MIM',    name: 'Magic Internet $',  cgId: 'magic-internet-money', mech: 'cdp',   chains_hint: 7,
     icon: 'https://coin-images.coingecko.com/coins/images/16786/small/mimlogopng.png',
     exchanges: ['gate','kucoin'] },
-  { llamaId: '3',   sym: 'BUSD',   name: 'Binance USD',       cgId: 'binance-usd',          mech: 'fiat',  chains_hint: 3,
+  // Wound down by Paxos/Binance 2023–24; residual redeemable supply only.
+  { llamaId: '4',   sym: 'BUSD',   name: 'Binance USD',       cgId: 'binance-usd',          mech: 'fiat',  chains_hint: 3,
     icon: 'https://coin-images.coingecko.com/coins/images/9576/small/BUSD.png',
-    exchanges: ['binance'] },
-  { llamaId: '15',  sym: 'UST',    name: 'TerraUSD (Classic)',cgId: 'terrausd',             mech: 'algo',  chains_hint: 2, depegged: true,
+    exchanges: [] },
+  { llamaId: '3',   sym: 'USTC',   name: 'TerraUSD (Classic)',cgId: 'terrausd',             mech: 'algo',  chains_hint: 2, depegged: true,
     icon: 'https://coin-images.coingecko.com/coins/images/21150/small/UST.png',
     exchanges: [] },
-  { llamaId: '23',  sym: 'EURS',   name: 'STASIS EURO',       cgId: 'stasis-eurs',          mech: 'fiat',  chains_hint: 2,
+  { llamaId: '51',  sym: 'EURS',   name: 'STASIS EURO',       cgId: 'stasis-eurs',          mech: 'fiat',  chains_hint: 2, pegType: 'peggedEUR',
     icon: 'https://coin-images.coingecko.com/coins/images/5164/small/EURS_300x300.png',
     exchanges: ['kraken','bitfinex','gate'] },
-  { llamaId: '29',  sym: 'EURT',   name: 'Euro Tether',       cgId: 'tether-eurt',          mech: 'fiat',  chains_hint: 2,
-    icon: 'https://coin-images.coingecko.com/coins/images/17385/small/Tether_logo.png',
-    exchanges: ['kraken','bitfinex'] },
 ];
 
 let allCoins = [];
@@ -523,6 +541,7 @@ let currentPage = 1;
 const PAGE_SIZE = 50;
 let refreshTimer = null;
 let timerSeconds = 180;
+let eurUsdRef = null; // EUR/USD rate derived each refresh from EUR-pegged coins
 
 // ---- Resilient fetch: try the Worker proxy path first, fall back to a direct
 // browser→upstream call when the proxy answers empty/errors (e.g. the proxy's
@@ -588,21 +607,39 @@ function formatPrice(p) {
   return '$' + p.toFixed(p > 0.999 && p < 1.001 ? 4 : 6);
 }
 
-function pegDelta(price) {
-  const d = (price - 1.0) * 100;
+// Peg target per coin: $1 for USD pegs, the derived EUR/USD rate for EUR pegs,
+// null when unknowable (no reference this refresh, or an unsupported peg type).
+function pegTargetOf(coin) {
+  const t = coin.pegType || 'peggedUSD';
+  if (t.indexOf('USD') !== -1) return 1.0;
+  if (t === 'peggedEUR') return eurUsdRef;
+  return null;
+}
+
+// Relative deviation from peg; 0 when the target is unknown.
+function pegDevOf(coin) {
+  const target = pegTargetOf(coin);
+  if (!target || !coin.price) return 0;
+  return Math.abs(coin.price - target) / target;
+}
+
+function pegDelta(coin) {
+  const target = pegTargetOf(coin);
+  if (!target || !coin.price) return '—';
+  const d = (coin.price - target) / target * 100;
   const sign = d >= 0 ? '+' : '';
   return sign + d.toFixed(4) + '%';
 }
 
-function pegDeltaClass(price) {
-  const dev = Math.abs(price - 1.0);
+function pegDeltaClass(coin) {
+  const dev = pegDevOf(coin);
   if (dev <= 0.001) return 'g';
   if (dev <= 0.01) return 'a';
   return 'r';
 }
 
-function priceClass(price) {
-  const dev = Math.abs(price - 1.0);
+function priceClass(coin) {
+  const dev = pegDevOf(coin);
   if (dev <= 0.001) return 'g';
   if (dev <= 0.01) return 'a';
   return 'r';
@@ -621,7 +658,7 @@ function normalizeMech(raw) {
 function calcRisk(coin) {
   if (coin.depegged) return 95;
   let score = 0;
-  const dev = Math.abs((coin.price || 1) - 1.0);
+  const dev = pegDevOf(coin);
   if (dev > 0.10) score += 50;
   else if (dev > 0.05) score += 40;
   else if (dev > 0.02) score += 30;
@@ -647,7 +684,7 @@ function calcRisk(coin) {
 
 function getStatus(coin) {
   if (coin.depegged) return 'depegged';
-  const dev = Math.abs((coin.price || 1) - 1.0);
+  const dev = pegDevOf(coin);
   if (dev > 0.02) return 'depegged';
   if (dev > 0.005) return 'atrisk';
   return 'pegged';
@@ -890,7 +927,7 @@ function sortBy(key) {
 function getSorted(coins) {
   return [...coins].sort((a, b) => {
     let av = a[sortKey], bv = b[sortKey];
-    if (sortKey === 'peg') { av = Math.abs((a.price||1)-1); bv = Math.abs((b.price||1)-1); }
+    if (sortKey === 'peg') { av = pegDevOf(a); bv = pegDevOf(b); }
     if (sortKey === 'symbol') { av = a.sym; bv = b.sym; }
     if (typeof av === 'string') return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
     return sortAsc ? (av||0)-(bv||0) : (bv||0)-(av||0);
@@ -909,7 +946,7 @@ function renderStats() {
 
   document.getElementById('sc-stats').innerHTML = `
     <div class="stat"><div class="stat-label">Total Market Cap</div><div class="stat-val b">${formatUSD(totalMcap)}</div><div class="stat-sub">all tracked stablecoins</div></div>
-    <div class="stat"><div class="stat-label">✅ At Peg</div><div class="stat-val g">${atPeg}</div><div class="stat-sub">within 0.5% of $1.00</div></div>
+    <div class="stat"><div class="stat-label">✅ At Peg</div><div class="stat-val g">${atPeg}</div><div class="stat-sub">within 0.5% of peg</div></div>
     <div class="stat"><div class="stat-label">⚠ At Risk</div><div class="stat-val a">${atRisk}</div><div class="stat-sub">0.5% – 2% deviation</div></div>
     <div class="stat"><div class="stat-label">🚨 Depegged</div><div class="stat-val r">${depegged}</div><div class="stat-sub">over 2% deviation</div></div>
     <div class="stat"><div class="stat-label">Largest</div><div class="stat-val p">${largest?.sym||'—'}</div><div class="stat-sub">${formatUSD(largest?.mcap||0)}</div></div>
@@ -941,8 +978,8 @@ function renderTable() {
   tbody.innerHTML = page.map(c => {
     const rank = rankMap[c.sym+c.llamaId] || '—';
     const price = c.price || 1.0;
-    const pdCls = pegDeltaClass(price);
-    const priceCls = priceClass(price);
+    const pdCls = pegDeltaClass(c);
+    const priceCls = priceClass(c);
     const ghFb = `https://cdn.jsdelivr.net/gh/ErikThiart/cryptocurrency-icons@master/32/${c.sym.toLowerCase()}.png`;
     const iconHtml = c.icon
       ? `<img src="${c.icon}" alt="${c.sym}" data-fb="${ghFb}" loading="lazy" onerror="if(this.dataset.fb){var f=this.dataset.fb;this.dataset.fb='';this.src=f;return;}this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="coin-letter-icon" style="display:none">${c.sym.charAt(0)}</span>`
@@ -968,7 +1005,7 @@ function renderTable() {
       </td>
       <td>${mechBadge(c.mech)}</td>
       <td><span class="price-cell ${priceCls}">${formatPrice(price)}</span></td>
-      <td><span class="peg-delta ${pdCls}">${pegDelta(price)}</span></td>
+      <td><span class="peg-delta ${pdCls}">${pegDelta(c)}</span></td>
       <td class="col-mcap"><span class="mcap">${formatUSD(c.mcap)}</span></td>
       <td class="col-vol"><span class="vol">${formatUSD(c.vol24h)}</span></td>
       <td class="col-chg"><span class="pct ${chgCls}">${c.vol24h > 0 ? chgSign + (c.change24h||0).toFixed(2) + '%' : '—'}</span></td>
@@ -1020,6 +1057,18 @@ async function fetchData() {
   const llamaById = {};
   llamaCoins.forEach(c => { llamaById[String(c.id)] = c; });
 
+  // EUR/USD reference from the EUR-pegged cohort itself (mcap-weighted mean of
+  // llama USD prices) so euro stables are scored against their real peg, not $1.
+  let eurNum = 0, eurDen = 0;
+  llamaCoins.forEach(c => {
+    if (c.pegType !== 'peggedEUR' || !c.price) return;
+    const count = (c.circulating || {}).peggedEUR || 0;
+    if (count < 5_000_000) return;
+    eurNum += c.price * count;
+    eurDen += count;
+  });
+  eurUsdRef = eurDen > 0 ? eurNum / eurDen : null;
+
   let cgData = [];
   try {
     const cgIds = HARDCODED.map(h => h.cgId).join(',');
@@ -1033,34 +1082,50 @@ async function fetchData() {
   const cgById = {};
   (Array.isArray(cgData) ? cgData : []).forEach(c => { cgById[c.id] = c; });
 
-  // Merge hardcoded entries
+  // Merge hardcoded entries. Identity guard: if a source's symbol doesn't match
+  // ours, that id/mapping is wrong — drop the source rather than render another
+  // asset's numbers under this row (wrong llamaIds once cross-wired FRAX↔DAI).
   allCoins = HARDCODED.map(hc => {
-    const llama = llamaById[hc.llamaId] || {};
-    const cg = cgById[hc.cgId] || {};
+    let llama = llamaById[hc.llamaId] || {};
+    if (llama.symbol && llama.symbol.toUpperCase() !== hc.sym.toUpperCase()) llama = {};
+    let cg = cgById[hc.cgId] || {};
+    if (cg.symbol && cg.symbol.toUpperCase() !== hc.sym.toUpperCase()) cg = {};
 
+    const pegType = llama.pegType || hc.pegType || 'peggedUSD';
     const circ = llama.circulating || {};
-    const mcap = Object.values(circ).reduce((a, v) => a + (typeof v === 'number' ? v : 0), 0);
+    const count = Object.values(circ).reduce((a, v) => a + (typeof v === 'number' ? v : 0), 0);
+    const price = llama.price || cg.current_price || 1.0;
+    // circulating is denominated in the peg currency — convert non-USD to USD
+    const llamaMcap = pegType.indexOf('USD') !== -1 ? count : count * price;
 
     return {
       ...hc,
-      price: llama.price || cg.current_price || 1.0,
-      mcap: mcap || cg.market_cap || 0,
+      price,
+      mcap: llamaMcap || cg.market_cap || 0,
       vol24h: cg.total_volume || 0,
       change24h: cg.price_change_percentage_24h || 0,
       chains: llama.chains || [],
       chainCount: (llama.chains || []).length || hc.chains_hint || 0,
       icon: hc.icon || cg.image || null,
-      pegType: llama.pegType || 'peggedUSD',
+      pegType,
     };
   });
 
-  // Add large coins from DeFi Llama not in hardcoded list
+  // Add large coins from DeFi Llama not in hardcoded list (USD + EUR pegs).
+  // Skip only ids a hardcoded row actually consumed (symbol matched too), so a
+  // stale hardcoded id can't suppress the real coin from discovery.
   llamaCoins.forEach(lc => {
-    if (HARDCODED.find(h => h.llamaId === String(lc.id))) return;
-    const circ = lc.circulating || {};
-    const mcap = circ.peggedUSD || 0;
+    const lcSym = String(lc.symbol || '').toUpperCase();
+    if (HARDCODED.find(h => h.llamaId === String(lc.id) && h.sym.toUpperCase() === lcSym)) return;
+    const pegType = lc.pegType || '';
+    const isUSD = pegType.indexOf('USD') !== -1;
+    if (!isUSD && pegType !== 'peggedEUR') return;
+    const count = (lc.circulating || {})[pegType] || 0;
+    const mcap = isUSD ? count : count * (lc.price || 0);
     if (mcap < 10_000_000) return;
-    if (!(lc.pegType || '').includes('USD')) return;
+    // Tokenized funds (USYC, USDY…) accrue value above $1 — they have no $1 peg
+    // to monitor and would false-flag as depegged.
+    if (isUSD && (lc.price || 0) > 1.05) return;
 
     allCoins.push({
       llamaId: String(lc.id),
