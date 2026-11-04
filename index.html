@@ -31,11 +31,11 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
-    --bg-0: #08090c;
-    --bg-1: #0c0e12;
-    --bg-2: #111318;
-    --bg-3: #171a21;
-    --bg-4: #222730;
+    --bg-0: #08090a;
+    --bg-1: #0f1011;
+    --bg-2: #141516;
+    --bg-3: #1a1b1d;
+    --bg-4: #232428;
     --border-1: rgba(255,255,255,0.07);
     --border-2: rgba(255,255,255,0.12);
     --border-3: rgba(255,255,255,0.18);
@@ -62,29 +62,31 @@ body{background:var(--bg-0);color:var(--text-1);font-family:'Inter',sans-serif;m
 .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
 
 /* TOP NAV */
-.topnav{position:sticky;top:0;z-index:200;background:rgba(2,4,8,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.07);box-shadow:0 1px 0 rgba(255,255,255,0.03)}
+.topnav{position:sticky;top:0;z-index:200;background:rgba(8,9,10,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.07);box-shadow:0 1px 0 rgba(255,255,255,0.03)}
 .topnav-inner{max-width:1700px;margin:0 auto;padding:0 24px;height:56px;display:flex;align-items:center;gap:0}
 .tnav-brand{display:flex;align-items:center;gap:10px;flex-shrink:0;text-decoration:none}
-.tnav-logo{width:32px;height:32px;background:linear-gradient(135deg,#22c55e,#0891b2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-family:'IBM Plex Mono',monospace;font-weight:800}
-.tnav-name{font-size:14px;font-weight:700;letter-spacing:-0.3px;color:var(--text-2)}
+.tnav-logo{width:26px;height:26px;background:var(--green);color:#04130a;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;font-family:'IBM Plex Mono',monospace;font-weight:800}
+.tnav-name{font-size:14px;font-weight:600;letter-spacing:-0.2px;color:var(--text-1)}
 .tnav-divider{width:1px;height:20px;background:var(--border-1);margin:0 16px;flex-shrink:0}
 .tnav-scroll{flex:1;overflow-x:auto;scrollbar-width:none}
 .tnav-scroll::-webkit-scrollbar{display:none}
 .tnav-tabs{display:flex;align-items:center;gap:2px;flex-shrink:0;white-space:nowrap;padding:0 4px}
-.tnav-tab{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.18s;border:1px solid transparent;background:transparent;color:var(--text-3);font-family:'Inter',sans-serif;letter-spacing:-0.2px;text-decoration:none;flex-shrink:0;position:relative}
+.tnav-tab{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.18s;border:1px solid transparent;background:transparent;color:var(--text-3);font-family:'Inter',sans-serif;letter-spacing:-0.2px;text-decoration:none;flex-shrink:0;position:relative}
 .tnav-tab:hover{background:var(--bg-3);color:var(--text-2)}
 .tnav-tab.active{color:var(--text-1)}
-.tnav-tab.active.stablecoins{background:rgba(34,197,94,0.08);color:#22c55e}
+.tnav-tab.active{background:var(--bg-2)}
 .tnav-right{display:flex;align-items:center;gap:12px;flex-shrink:0;min-width:fit-content;margin-left:8px}
-.live{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--green);background:rgba(34,197,94,0.08);padding:5px 12px;border-radius:20px;border:1px solid rgba(34,197,94,0.2);letter-spacing:0.02em;font-weight:600}
+.live{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);font-weight:500}
 .live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.4s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.8)}}
 
 /* HEADER */
-.hdr{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.hdr{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px 32px;margin-bottom:20px}
 .hdr-left{display:flex;align-items:center;gap:14px}
-.hdr h1{font-size:22px;font-weight:800;letter-spacing:-0.5px;color:var(--text-1)}
+.hdr h1{font-size:24px;font-weight:600;letter-spacing:-0.5px;line-height:1.25;color:var(--text-1)}
+.hdr h1 em{font-style:normal;color:var(--red)}
 .hdr .sub{font-size:13px;color:var(--text-3);margin-top:4px}
+.hdr-meta{display:flex;align-items:center;gap:10px;margin-top:10px}
 .hdr-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .meta-text{font-size:12px;color:var(--text-3);font-variant-numeric:tabular-nums}
 .btn{background:var(--bg-3);border:1px solid var(--border-2);color:var(--text-2);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s cubic-bezier(0.16,1,0.3,1);display:flex;align-items:center;gap:5px}
@@ -93,45 +95,42 @@ body{background:var(--bg-0);color:var(--text-1);font-family:'Inter',sans-serif;m
 .btn.spinning svg{animation:spin 0.8s linear infinite}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;margin-bottom:24px;background:var(--border-1);border:1px solid var(--border-1);border-radius:12px;overflow:hidden}
-/* 6 stats: auto-fit wrapped them 5+1 between 900 and 1280px, leaving one orphan card */
-@media(min-width:901px){#sc-stats{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:1280px){#sc-stats{grid-template-columns:repeat(6,1fr)}}
-.stat{background:var(--bg-1);padding:16px 20px;position:relative}
-.stat-label{font-size:12px;color:var(--text-2);margin-bottom:8px;font-weight:500}
-.stat-val{font-size:27px;font-weight:600;letter-spacing:-0.6px;line-height:1;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
-.stat-val.r{color:var(--red)}.stat-val.a{color:var(--amber)}.stat-val.g{color:var(--green)}.stat-val.b{color:var(--blue)}.stat-val.p{color:var(--purple)}
-.stat-sub{font-size:12px;color:var(--text-3);margin-top:6px}
+/* STATS: four figures beside the headline, divided by hairlines */
+.stats{display:flex;align-items:flex-end}
+.stat{padding:0 20px;border-left:1px solid var(--border-1)}
+.stat:first-child{border-left:0;padding-left:0}
+.stat:last-child{padding-right:0}
+.stat-val{font-size:18px;font-weight:500;letter-spacing:-0.4px;line-height:1.1;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.stat-label{font-size:12px;color:var(--text-3);margin-top:4px;white-space:nowrap}
 
 /* FILTERS */
 .filters{display:flex;align-items:center;gap:6px;margin-bottom:16px;flex-wrap:wrap}
-.ftab{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;border:1px solid var(--border-1);background:transparent;color:var(--text-2);font-family:'Inter',sans-serif;white-space:nowrap;min-height:36px}
-.ftab:hover{background:var(--bg-3);border-color:var(--border-2);color:var(--text-1)}
-.ftab.active{background:var(--bg-4);color:var(--text-1);border-color:var(--border-3);font-weight:600}
+.seg{display:flex;gap:2px;padding:3px;background:var(--bg-1);border:1px solid var(--border-1);border-radius:9px}
+.ftab{padding:0 11px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s,color 0.15s;border:0;background:transparent;color:var(--text-3);font-family:'Inter',sans-serif;white-space:nowrap;min-height:30px}
+.ftab:hover{color:var(--text-1)}
+.ftab.active{background:var(--bg-4);color:var(--text-1)}
+.ftab .fdot{display:none}
 .fdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px;background:var(--text-3)}
 .fdot.r{background:var(--red)}.fdot.a{background:var(--amber)}.fdot.g{background:var(--green)}.fdot.b{background:var(--blue)}.fdot.p{background:var(--purple)}
 .ftab .cnt{font-family:'IBM Plex Mono',monospace;font-size:10px;margin-left:4px;opacity:0.6}
-.search{margin-left:auto;background:rgba(255,255,255,0.04);border:1px solid var(--border-2);border-radius:8px;padding:0 14px;color:var(--text-1);font-size:13px;width:200px;outline:none;transition:all 0.2s;height:36px}
+.search{margin-left:auto;background:var(--bg-1);border:1px solid var(--border-1);border-radius:8px;padding:0 12px;color:var(--text-1);font-size:13px;width:240px;outline:none;transition:border-color 0.2s;height:38px}
 .search::placeholder{color:var(--text-3)}
 .search:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(59,130,246,0.15);background:rgba(255,255,255,0.06)}
 
 /* TABLE */
-.tbl-wrap{background:var(--bg-1);border:1px solid var(--border-1);border-radius:12px;overflow-x:auto}
+.tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:1100px}
-thead{background:rgba(255,255,255,0.02)}
-th{padding:11px 14px;text-align:left;font-size:12px;color:var(--text-3);font-weight:500;border-bottom:1px solid var(--border-2);white-space:nowrap;cursor:pointer;user-select:none;transition:color 0.15s}
+th{padding:10px 14px;text-align:left;font-size:12px;color:var(--text-3);font-weight:500;border-bottom:1px solid var(--border-1);white-space:nowrap;cursor:pointer;user-select:none;transition:color 0.15s}
 th:hover{color:var(--text-2)}
 th.sorted{color:var(--text-1)}
 th[data-sort]::after{content:'';margin-left:3px;opacity:0.3;font-size:9px}
 th[data-sort].sorted::after{content:' ▼';opacity:1}
 th[data-sort].sorted.asc-dir::after{content:' ▲';opacity:1}
-td{padding:10px 14px;border-bottom:1px solid var(--border-1);font-size:13px;vertical-align:middle}
+td{padding:12px 14px;border-bottom:1px solid var(--border-1);font-size:13px;vertical-align:middle}
 tr{transition:background 0.15s}
-tbody tr:hover{background:rgba(255,255,255,0.03)}
-tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg-1)}
 /* Pin the header under the nav once the table fits without side-scrolling: a scroll container blocks sticky */
-@media(min-width:1200px){.tbl-wrap{overflow:visible}th{position:sticky;top:56px;z-index:2;background:linear-gradient(rgba(255,255,255,0.02),rgba(255,255,255,0.02)),var(--bg-1)}th:first-child{border-top-left-radius:12px}th:last-child{border-top-right-radius:12px}}
+@media(min-width:1200px){.tbl-wrap{overflow:visible}th{position:sticky;top:56px;z-index:2;background:var(--bg-0)}}
 /* Right-align numeric columns (headers by sort key, cells by content class) */
 th[data-sort="price"],th[data-sort="peg"],th[data-sort="mcap"],th[data-sort="vol"],th[data-sort="vol24h"],th[data-sort="change"],th[data-sort="change24h"],th[data-sort="risk"],th[data-sort="_risk"],th[data-sort="bidDepth"],th[data-sort="askDepth"],th[data-sort="daysOnMon"]{text-align:right}
 td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),td:has(.depth),td:has(.risk-score),td:has(.days-ref){text-align:right}
@@ -162,7 +161,7 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
 .ex-icon-link img{width:16px;height:16px;border-radius:2px;display:block}
 
 /* MECHANISM BADGES */
-.mech{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em}
+.mech{display:inline-flex;align-items:center;font-size:12px;font-weight:500;background:none!important;color:var(--text-2)!important}
 .mech.fiat{background:var(--blue-soft);color:var(--blue)}
 .mech.cdp{background:var(--purple-soft);color:var(--purple)}
 .mech.algo{background:var(--amber-soft);color:var(--amber)}
@@ -187,7 +186,7 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
 .rank-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-3);font-weight:500;font-variant-numeric:tabular-nums}
 
 /* RISK SCORE */
-.risk-score{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;padding:3px 8px;border-radius:4px}
+.risk-score{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;background:none!important}
 .risk-score.safe{background:var(--green-soft);color:var(--green)}
 .risk-score.low{background:rgba(34,197,94,0.06);color:#6ee7b7}
 .risk-score.medium{background:var(--amber-soft);color:var(--amber)}
@@ -235,21 +234,22 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
 .empty-state{padding:48px;text-align:center;color:var(--text-3);font-size:13px}
 
 /* RESPONSIVE */
-@media(max-width:900px){.wrap{padding:16px 14px}.hdr{flex-direction:column}.search{width:100%;margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.wrap{padding:16px 14px}.hdr{flex-direction:column;align-items:flex-start}.search{width:100%;margin-left:0}}
 @media(max-width:640px){
   .tnav-name{display:none}
   .tnav-divider{display:none}
   .tnav-tab{padding:6px 10px;font-size:12px;flex-shrink:0;gap:5px}
   .topnav-inner{padding:0 10px;height:50px}
   .tnav-right{margin-left:4px}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .stat{padding:14px 16px}
-  .stat-val{font-size:22px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;width:100%}
+  .stat,.stat:first-child,.stat:last-child{border:0;padding:0}
+  .stat-val{font-size:16px}
+  .seg{flex-shrink:0}
   .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px}
   .filters::-webkit-scrollbar{display:none}
   .ftab{flex-shrink:0;padding:5px 12px;font-size:11px}
   .search{min-width:140px;font-size:11px}
-  .hdr h1{font-size:18px}
+  .hdr h1{font-size:19px}
   .cookie-bar{padding:12px 16px}
   .cookie-bar-inner{flex-direction:column;align-items:flex-start;gap:10px}
   .cookie-bar-actions{align-self:flex-end}
@@ -346,7 +346,7 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
   <div class="topnav-inner">
     <a class="tnav-brand" href="https://shitcoin.io">
       <div class="tnav-logo">💲</div>
-      <span class="tnav-name">Stablecoin Monitor</span>
+      <span class="tnav-name">stablecoin.io</span>
     </a>
     <div class="tnav-divider"></div>
     <div class="tnav-scroll">
@@ -366,7 +366,7 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
       </div>
     </div>
     <div class="tnav-right">
-      <div class="live" id="tnav-live" style="display:none"><span class="live-dot"></span>LIVE</div>
+      <div class="live" id="tnav-live" style="display:none"><span class="live-dot"></span>Live</div>
     </div>
   </div>
 </nav>
@@ -387,32 +387,24 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
   <div class="hdr">
     <div class="hdr-left">
       <div>
-        <h1>Stablecoin Monitor</h1>
-        <div class="sub">peg health · risk scores · market caps · mechanism analysis</div>
+        <h1 id="sc-headline">Stablecoin peg monitor</h1>
+        <div class="sub">Every tracked stablecoin's price against its peg. Drift past 0.5% is at risk; past 2% is depegged.</div>
+        <div class="hdr-meta">
+          <span class="meta-text" id="sc-updTime"></span>
+          <span class="meta-text" id="sc-refreshTimer"></span>
+          <button class="btn" id="sc-refreshBtn" onclick="doRefresh()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Refresh
+          </button>
+        </div>
       </div>
     </div>
-    <div class="hdr-right">
-      <span class="meta-text" id="sc-updTime"></span>
-      <span class="meta-text" id="sc-refreshTimer"></span>
-      <button class="btn" id="sc-refreshBtn" onclick="doRefresh()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        Refresh
-      </button>
-    </div>
-  </div>
-
-  <!-- STAT CARDS -->
-  <div class="stats" id="sc-stats">
-    <div class="stat"><div class="stat-label">Total market cap</div><div class="stat-val">—</div><div class="stat-sub">all tracked stablecoins</div></div>
-    <div class="stat"><div class="stat-label">At peg</div><div class="stat-val g">—</div><div class="stat-sub">within 0.5% of peg</div></div>
-    <div class="stat"><div class="stat-label">At risk</div><div class="stat-val a">—</div><div class="stat-sub">0.5% – 2% deviation</div></div>
-    <div class="stat"><div class="stat-label">Depegged</div><div class="stat-val r">—</div><div class="stat-sub">over 2% deviation</div></div>
-    <div class="stat"><div class="stat-label">Largest</div><div class="stat-val">—</div><div class="stat-sub">by market cap</div></div>
-    <div class="stat"><div class="stat-label">Tracked</div><div class="stat-val">—</div><div class="stat-sub">stablecoins monitored</div></div>
+    <div class="stats" id="sc-stats"></div>
   </div>
 
   <!-- FILTERS -->
   <div class="filters" id="sc-filters">
+    <div class="seg">
     <button class="ftab active" data-f="all" onclick="setFilter('all')">All</button>
     <button class="ftab" data-f="pegged" onclick="setFilter('pegged')"><span class="fdot g"></span>Pegged</button>
     <button class="ftab" data-f="atrisk" onclick="setFilter('atrisk')"><span class="fdot a"></span>At risk</button>
@@ -420,6 +412,7 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
     <button class="ftab" data-f="fiat" onclick="setFilter('fiat')"><span class="fdot b"></span>Fiat</button>
     <button class="ftab" data-f="cdp" onclick="setFilter('cdp')"><span class="fdot p"></span>CDP</button>
     <button class="ftab" data-f="algo" onclick="setFilter('algo')"><span class="fdot a"></span>Algo</button>
+    </div>
     <input class="search" type="text" placeholder="Search stablecoins..." id="sc-search" oninput="onSearch(this.value)">
   </div>
 
@@ -950,13 +943,13 @@ function renderStats() {
   const depegged = all.filter(c => c._status === 'depegged').length;
   const largest = all.reduce((best, c) => (c.mcap||0) > (best?.mcap||0) ? c : best, null);
 
+  document.getElementById('sc-headline').innerHTML =
+    `${atPeg} of ${all.length} stablecoins hold their peg. <em>${depegged}</em> ${depegged === 1 ? 'has' : 'have'} broken it.`;
   document.getElementById('sc-stats').innerHTML = `
-    <div class="stat"><div class="stat-label">Total market cap</div><div class="stat-val">${formatUSD(totalMcap)}</div><div class="stat-sub">all tracked stablecoins</div></div>
-    <div class="stat"><div class="stat-label">At peg</div><div class="stat-val g">${atPeg}</div><div class="stat-sub">within 0.5% of peg</div></div>
-    <div class="stat"><div class="stat-label">At risk</div><div class="stat-val a">${atRisk}</div><div class="stat-sub">0.5% – 2% deviation</div></div>
-    <div class="stat"><div class="stat-label">Depegged</div><div class="stat-val r">${depegged}</div><div class="stat-sub">over 2% deviation</div></div>
-    <div class="stat"><div class="stat-label">Largest</div><div class="stat-val">${largest?.sym||'—'}</div><div class="stat-sub">${formatUSD(largest?.mcap||0)}</div></div>
-    <div class="stat"><div class="stat-label">Tracked</div><div class="stat-val">${all.length}</div><div class="stat-sub">stablecoins monitored</div></div>
+    <div class="stat"><div class="stat-val">${formatUSD(totalMcap)}</div><div class="stat-label">Total market cap</div></div>
+    <div class="stat"><div class="stat-val">${atRisk}</div><div class="stat-label">At risk</div></div>
+    <div class="stat"><div class="stat-val">${depegged}</div><div class="stat-label">Depegged</div></div>
+    <div class="stat"><div class="stat-val">${largest?.sym||'—'}</div><div class="stat-label">Largest · ${formatUSD(largest?.mcap||0)}</div></div>
   `;
 }
 
