@@ -101,8 +101,6 @@ body::after{content:'';position:fixed;top:0;left:0;width:100%;height:100%;opacit
 @media(min-width:901px){#sc-stats{grid-template-columns:repeat(3,1fr)}}
 @media(min-width:1280px){#sc-stats{grid-template-columns:repeat(6,1fr)}}
 .stat{background:var(--bg-1);border:1px solid var(--border-1);border-radius:10px;padding:17px 20px;transition:border-color 0.2s,box-shadow 0.2s;position:relative;overflow:hidden}
-.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:10px 10px 0 0;opacity:0.9}
-.stat.r::before{background:var(--red)}.stat.a::before{background:var(--amber)}.stat.g::before{background:var(--green)}.stat.b::before{background:var(--blue)}.stat.p::before{background:var(--purple)}
 .stat:hover{border-color:var(--border-2)}
 .stat-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-3);font-family:'IBM Plex Mono',monospace;margin-bottom:9px;font-weight:600}
 .stat-val{font-size:27px;font-weight:600;letter-spacing:-0.6px;line-height:1;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
@@ -400,11 +398,11 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
 
   <!-- STAT CARDS -->
   <div class="stats" id="sc-stats">
-    <div class="stat b"><div class="stat-label">Total Market Cap</div><div class="stat-val b">—</div><div class="stat-sub">all tracked stablecoins</div></div>
-    <div class="stat g"><div class="stat-label">At Peg</div><div class="stat-val g">—</div><div class="stat-sub">within 0.5% of peg</div></div>
-    <div class="stat a"><div class="stat-label">At Risk</div><div class="stat-val a">—</div><div class="stat-sub">0.5% – 2% deviation</div></div>
-    <div class="stat r"><div class="stat-label">Depegged</div><div class="stat-val r">—</div><div class="stat-sub">over 2% deviation</div></div>
-    <div class="stat p"><div class="stat-label">Largest</div><div class="stat-val p">—</div><div class="stat-sub">by market cap</div></div>
+    <div class="stat"><div class="stat-label">Total Market Cap</div><div class="stat-val b">—</div><div class="stat-sub">all tracked stablecoins</div></div>
+    <div class="stat"><div class="stat-label">At Peg</div><div class="stat-val g">—</div><div class="stat-sub">within 0.5% of peg</div></div>
+    <div class="stat"><div class="stat-label">At Risk</div><div class="stat-val a">—</div><div class="stat-sub">0.5% – 2% deviation</div></div>
+    <div class="stat"><div class="stat-label">Depegged</div><div class="stat-val r">—</div><div class="stat-sub">over 2% deviation</div></div>
+    <div class="stat"><div class="stat-label">Largest</div><div class="stat-val p">—</div><div class="stat-sub">by market cap</div></div>
     <div class="stat"><div class="stat-label">Tracked</div><div class="stat-val">—</div><div class="stat-sub">stablecoins monitored</div></div>
   </div>
 
