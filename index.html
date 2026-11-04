@@ -112,6 +112,8 @@ body::after{content:'';position:fixed;top:0;left:0;width:100%;height:100%;opacit
 .ftab{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;border:1px solid var(--border-1);background:transparent;color:var(--text-2);font-family:'Inter',sans-serif;white-space:nowrap;min-height:36px}
 .ftab:hover{background:var(--bg-3);border-color:var(--border-2);color:var(--text-1)}
 .ftab.active{background:var(--text-1);color:var(--bg-0);border-color:var(--text-1);font-weight:600}
+.fdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px;background:var(--text-3)}
+.fdot.r{background:var(--red)}.fdot.a{background:var(--amber)}.fdot.g{background:var(--green)}.fdot.b{background:var(--blue)}.fdot.p{background:var(--purple)}
 .ftab .cnt{font-family:'IBM Plex Mono',monospace;font-size:10px;margin-left:4px;opacity:0.6}
 .search{margin-left:auto;background:rgba(255,255,255,0.04);border:1px solid var(--border-2);border-radius:8px;padding:0 14px;color:var(--text-1);font-family:'IBM Plex Mono',monospace;font-size:12px;width:200px;outline:none;transition:all 0.2s;height:36px}
 .search::placeholder{color:var(--text-3)}
@@ -408,13 +410,13 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
 
   <!-- FILTERS -->
   <div class="filters" id="sc-filters">
-    <button class="ftab active" data-f="all" onclick="setFilter('all')">📋 All</button>
-    <button class="ftab" data-f="pegged" onclick="setFilter('pegged')">✅ Pegged</button>
-    <button class="ftab" data-f="atrisk" onclick="setFilter('atrisk')">⚠ At Risk</button>
-    <button class="ftab" data-f="depegged" onclick="setFilter('depegged')">🚨 Depegged</button>
-    <button class="ftab" data-f="fiat" onclick="setFilter('fiat')">🏦 Fiat</button>
-    <button class="ftab" data-f="cdp" onclick="setFilter('cdp')">⛓ CDP</button>
-    <button class="ftab" data-f="algo" onclick="setFilter('algo')">🤖 Algo</button>
+    <button class="ftab active" data-f="all" onclick="setFilter('all')">All</button>
+    <button class="ftab" data-f="pegged" onclick="setFilter('pegged')"><span class="fdot g"></span>Pegged</button>
+    <button class="ftab" data-f="atrisk" onclick="setFilter('atrisk')"><span class="fdot a"></span>At Risk</button>
+    <button class="ftab" data-f="depegged" onclick="setFilter('depegged')"><span class="fdot r"></span>Depegged</button>
+    <button class="ftab" data-f="fiat" onclick="setFilter('fiat')"><span class="fdot b"></span>Fiat</button>
+    <button class="ftab" data-f="cdp" onclick="setFilter('cdp')"><span class="fdot p"></span>CDP</button>
+    <button class="ftab" data-f="algo" onclick="setFilter('algo')"><span class="fdot a"></span>Algo</button>
     <input class="search" type="text" placeholder="Search stablecoins..." id="sc-search" oninput="onSearch(this.value)">
   </div>
 
@@ -947,9 +949,9 @@ function renderStats() {
 
   document.getElementById('sc-stats').innerHTML = `
     <div class="stat"><div class="stat-label">Total Market Cap</div><div class="stat-val b">${formatUSD(totalMcap)}</div><div class="stat-sub">all tracked stablecoins</div></div>
-    <div class="stat"><div class="stat-label">✅ At Peg</div><div class="stat-val g">${atPeg}</div><div class="stat-sub">within 0.5% of peg</div></div>
-    <div class="stat"><div class="stat-label">⚠ At Risk</div><div class="stat-val a">${atRisk}</div><div class="stat-sub">0.5% – 2% deviation</div></div>
-    <div class="stat"><div class="stat-label">🚨 Depegged</div><div class="stat-val r">${depegged}</div><div class="stat-sub">over 2% deviation</div></div>
+    <div class="stat"><div class="stat-label">At Peg</div><div class="stat-val g">${atPeg}</div><div class="stat-sub">within 0.5% of peg</div></div>
+    <div class="stat"><div class="stat-label">At Risk</div><div class="stat-val a">${atRisk}</div><div class="stat-sub">0.5% – 2% deviation</div></div>
+    <div class="stat"><div class="stat-label">Depegged</div><div class="stat-val r">${depegged}</div><div class="stat-sub">over 2% deviation</div></div>
     <div class="stat"><div class="stat-label">Largest</div><div class="stat-val p">${largest?.sym||'—'}</div><div class="stat-sub">${formatUSD(largest?.mcap||0)}</div></div>
     <div class="stat"><div class="stat-label">Tracked</div><div class="stat-val">${all.length}</div><div class="stat-sub">stablecoins monitored</div></div>
   `;
