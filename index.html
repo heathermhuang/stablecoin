@@ -253,9 +253,11 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
   .cookie-bar{padding:12px 16px}
   .cookie-bar-inner{flex-direction:column;align-items:flex-start;gap:10px}
   .cookie-bar-actions{align-self:flex-end}
-  .col-mcap,.col-vol,.col-chg,.col-chains,.col-exchanges{display:none}
-  table{min-width:360px}
-  td,th{padding:10px 10px}
+  /* Phones keep coin, price, peg and risk on screen with no sideways scroll; mechanism stays a filter */
+  .col-rank,.col-mech,.col-mcap,.col-vol,.col-chg,.col-chains,.col-exchanges,.tk-txt .tk-links{display:none}
+  table{min-width:0}
+  td,th{padding:10px 6px}
+  .tk{gap:7px}
   .tk-ico{width:24px;height:24px}
   .tk-ico img{width:24px;height:24px}
   .tk-sym{font-size:12px}
@@ -426,9 +428,9 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
     <table>
       <thead>
         <tr>
-          <th style="width:38px;cursor:default">#</th>
+          <th class="col-rank" style="width:38px;cursor:default">#</th>
           <th data-sort="symbol" onclick="sortBy('symbol')">Stablecoin</th>
-          <th data-sort="mech" onclick="sortBy('mech')">Mechanism</th>
+          <th class="col-mech" data-sort="mech" onclick="sortBy('mech')">Mechanism</th>
           <th data-sort="price" onclick="sortBy('price')">Price</th>
           <th data-sort="peg" onclick="sortBy('peg')">Peg Δ</th>
           <th class="col-mcap" data-sort="mcap" onclick="sortBy('mcap')">Mkt cap</th>
@@ -995,7 +997,7 @@ function renderTable() {
     const chgSign = (c.change24h||0) >= 0 ? '+' : '';
 
     return `<tr>
-      <td><span class="rank-num">${rank}</span></td>
+      <td class="col-rank"><span class="rank-num">${rank}</span></td>
       <td>
         <div class="tk">
           <div class="tk-ico">${iconHtml}</div>
@@ -1006,7 +1008,7 @@ function renderTable() {
           </div>
         </div>
       </td>
-      <td>${mechBadge(c.mech)}</td>
+      <td class="col-mech">${mechBadge(c.mech)}</td>
       <td><span class="price-cell ${priceCls}">${formatPrice(price)}</span></td>
       <td><span class="peg-delta ${pdCls}">${pegDelta(c)}</span></td>
       <td class="col-mcap"><span class="mcap">${formatUSD(c.mcap)}</span></td>
