@@ -130,6 +130,8 @@ td{padding:10px 14px;border-bottom:1px solid var(--border-1);font-size:13px;vert
 tr{transition:background 0.15s}
 tbody tr:hover{background:rgba(255,255,255,0.03)}
 tbody tr:last-child td{border-bottom:none}
+/* Pin the header under the nav once the table fits without side-scrolling: a scroll container blocks sticky */
+@media(min-width:1200px){.tbl-wrap{overflow:visible}th{position:sticky;top:56px;z-index:2;background:linear-gradient(rgba(255,255,255,0.02),rgba(255,255,255,0.02)),var(--bg-1)}th:first-child{border-top-left-radius:12px}th:last-child{border-top-right-radius:12px}}
 /* Right-align numeric columns (headers by sort key, cells by content class) */
 th[data-sort="price"],th[data-sort="peg"],th[data-sort="mcap"],th[data-sort="vol"],th[data-sort="vol24h"],th[data-sort="change"],th[data-sort="change24h"],th[data-sort="risk"],th[data-sort="_risk"],th[data-sort="bidDepth"],th[data-sort="askDepth"],th[data-sort="daysOnMon"]{text-align:right}
 td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),td:has(.depth),td:has(.risk-score),td:has(.days-ref){text-align:right}
@@ -139,10 +141,13 @@ td:has(.price-cell),td:has(.peg-delta),td:has(.mcap),td:has(.vol),td:has(.pct),t
 .tk-ico{width:28px;height:28px;border-radius:50%;background:var(--bg-3);border:1px solid var(--border-2);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;color:var(--text-2);flex-shrink:0;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,0.05)}
 .tk-ico img{width:28px;height:28px;border-radius:50%;display:block}
 .tk-sym{font-weight:700;font-size:13px;letter-spacing:-0.2px;color:var(--text-1)}
-.tk-name{font-size:11.5px;color:var(--text-3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tk-chains{font-size:11px;color:var(--text-3);margin-top:2px}
+.tk-name{font-size:11.5px;color:var(--text-3);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .coin-letter-icon{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--bg-4),var(--bg-3));border:1px solid var(--border-2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text-2);font-family:'IBM Plex Mono',monospace;flex-shrink:0}
 .tk-links{display:flex;gap:3px;margin-top:2px;align-items:center}
+/* Symbol and links share the first line, name under it: two lines per row instead of three */
+.tk-txt{display:grid;grid-template-columns:auto 1fr;column-gap:6px;align-items:center;min-width:0}
+.tk-txt .tk-links{grid-row:1;grid-column:2;margin-top:0}
+.tk-txt .tk-name{grid-column:1/-1}
 .tk-links a{display:flex;align-items:center;justify-content:center;width:20px;height:20px;opacity:0.45;transition:opacity 0.15s;border-radius:3px}
 .tk-links a:hover{opacity:1}
 .tk-links a img{width:14px;height:14px;border-radius:2px;display:block}
@@ -994,11 +999,10 @@ function renderTable() {
       <td>
         <div class="tk">
           <div class="tk-ico">${iconHtml}</div>
-          <div>
+          <div class="tk-txt">
             <div class="tk-sym">${c.sym}</div>
-            <div class="tk-name">${c.name}</div>
-            <div class="tk-chains">${c.chainCount > 0 ? c.chainCount + ' chain' + (c.chainCount !== 1 ? 's' : '') : ''}</div>
             ${linksHtml}
+            <div class="tk-name">${c.name}${c.chainCount > 0 ? ' · ' + c.chainCount + ' chain' + (c.chainCount !== 1 ? 's' : '') : ''}</div>
           </div>
         </div>
       </td>
